@@ -1,7 +1,9 @@
 package com.avensys.rts.accountservice.controller;
 
+import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.entity.AccountEntity;
-import com.avensys.rts.accountservice.payload.AccountRequestDTO;
+import com.avensys.rts.accountservice.payloadrequest.AccountRequestDTO;
+import com.avensys.rts.accountservice.payloadresponse.AccountResponseDTO;
 import com.avensys.rts.accountservice.service.AccountServiceImpl;
 import com.avensys.rts.accountservice.util.ResponseUtil;
 import jakarta.validation.Valid;
@@ -9,9 +11,10 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 /***
  * @author Koh He Xiang
@@ -29,19 +32,38 @@ public class AccountController {
         this.messageSource = messageSource;
     }
 
-//        @GetMapping("/account")
-//    public ResponseEntity<HttpResponse> getAccount(HttpServletRequest request){
-////        String threadId = (String) request.getAttribute("threadId");
-//        HttpResponse httpResponse = new HttpResponse();
-//        String greeting = messageSource.getMessage("msg.text", null, Locale.US);
-//        httpResponse.setData(new MessageDTO(greeting));
-//        return ResponseEntity.ok(httpResponse);
-//    }
-
+    /**
+     * Create an account draft
+     * @param accountRequest
+     * @return
+     */
     @PostMapping("/accounts")
-    public ResponseEntity<Object> addAccount(@Valid @RequestBody AccountRequestDTO accountRequest) {
+    public ResponseEntity<Object> addAccount(@Valid @ModelAttribute AccountRequestDTO accountRequest) {
         System.out.println("In saving account now...");
         AccountEntity account = accountService.createAccount(accountRequest);
-        return ResponseUtil.generateSuccessResponse(account, HttpStatus.CREATED, messageSource.getMessage("account.created", null, LocaleContextHolder.getLocale()));
+        return ResponseUtil.generateSuccessResponse(account, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
     }
+
+    /**
+     * Find an account by Id
+     * @param accountId
+     * @return
+     */
+    @GetMapping("/accounts/{accountId}")
+    public ResponseEntity<Object> getAccountById(@PathVariable int accountId){
+        AccountResponseDTO account = accountService.getAccountById(accountId);
+        return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
+    /**
+     * Get all accounts
+     * @return
+     */
+    @GetMapping("/accounts")
+    public ResponseEntity<Object> getAllAccounts() {
+        List<AccountResponseDTO> accounts =  accountService.getAllAccounts();
+        Map<String, Object> accountsMap = Map.of("accounts", accounts);
+        return ResponseUtil.generateSuccessResponse(accountsMap, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
 }

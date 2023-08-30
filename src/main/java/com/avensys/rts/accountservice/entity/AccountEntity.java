@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
  */
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "account")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,9 +21,9 @@ public class AccountEntity {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
-    private long id;
+    private int id;
 
-    @Column(name = "name", length = 50, nullable = false)
+    @Column(name = "name", length = 50, nullable = false, unique = true)
     private String name;
 
     @Column(name = "status", length = 10 , nullable = false)
@@ -33,22 +33,23 @@ public class AccountEntity {
     private String rating;
 
     @Column(name = "industry")
-    private int industry;
+    private Integer industry;
 
     @Column(name = "sub_industry")
-    private int subIndustry;
+    private Integer subIndustry;
 
     @Column(name = "no_of_emp")
-    private int noOfEmployees;
+    private Integer noOfEmployees;
 
     @Column(name = "revenue_amt")
-    private double revenueAmt;
+    private Double revenueAmt;
 
     @Column(name = "revenue_cur")
-    private int revenueCur;
+    private Integer revenueCur;
 
-    @Column(name = "parent_company")
-    private int parentCompany;
+    @ManyToOne
+    @JoinColumn(name = "parent_company", referencedColumnName = "id")
+    private AccountEntity parentCompany;
 
     @Column(name = "website")
     private String website;
@@ -57,16 +58,16 @@ public class AccountEntity {
     private String accountSource;
 
     @Column(name = "landline_country")
-    private int landlineCountry;
+    private Integer landlineCountry;
 
     @Column(name = "landline_number")
-    private int landlineNumber;
+    private Integer landlineNumber;
 
     @Column(name = "secondary_owner", length = 50)
     private String secondaryOwner;
 
     @Column(name = "msa", columnDefinition = "smallint")
-    private int msa;
+    private Integer msa;
 
     @Column (name = "sales_name", length = 50 , nullable = false)
     private String salesName;
@@ -78,10 +79,10 @@ public class AccountEntity {
     private String accountName;
 
     @Column (name = "address")
-    private int address;
+    private Integer address;
 
     @Column (name = "billing_address")
-    private int billingAddress;
+    private Integer billingAddress;
 
     @Column (name = "remarks", columnDefinition = "text")
     private String remarks;
@@ -90,9 +91,9 @@ public class AccountEntity {
     private boolean isDeleted;
 
     @Column (name = "msp")
-    private double msp;
+    private Double msp;
 
     @Column (name = "markup")
-    private double markup;
+    private Double markup;
 
 }

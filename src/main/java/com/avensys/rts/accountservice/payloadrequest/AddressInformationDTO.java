@@ -1,4 +1,4 @@
-package com.avensys.rts.accountservice.payload;
+package com.avensys.rts.accountservice.payloadrequest;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

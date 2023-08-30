@@ -2,6 +2,10 @@ package com.avensys.rts.accountservice.exception;
 
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
 import com.avensys.rts.accountservice.util.ResponseUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -14,6 +18,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -56,6 +61,17 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler  {
         return ResponseUtil.generateErrorResponse(HttpStatus.BAD_REQUEST, errors.toString());
     }
 
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(
+            MissingServletRequestParameterException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        String error = ex.getParameterName() + " parameter is missing";
+        return ResponseUtil.generateErrorResponse(HttpStatus.BAD_REQUEST, error);
+    }
+
 
     @ExceptionHandler(value = RuntimeException.class)
     public ResponseEntity<Object> exception(RuntimeException ex) {
@@ -67,6 +83,21 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler  {
         return ResponseUtil.generateErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-
-
+    /**
+     * This method is used to handle the exceptions thrown by the Feign client.
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<Object> handleFeignException(FeignException ex) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        HttpResponse res = null;
+        try {
+             res = objectMapper.readValue(ex.contentUTF8(), HttpResponse.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return ResponseUtil.generateErrorResponse(HttpStatus.valueOf(ex.status()), res.getMessage());
+    }
 }

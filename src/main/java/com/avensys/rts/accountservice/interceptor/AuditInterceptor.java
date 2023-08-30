@@ -14,7 +14,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 public class AuditInterceptor implements HandlerInterceptor   {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(AuditInterceptor.class);
+    private final Logger log = LoggerFactory.getLogger(AuditInterceptor.class);
 
     /**
      * This method is used to intercept the request and inject audit data into the request context.
@@ -26,7 +26,7 @@ public class AuditInterceptor implements HandlerInterceptor   {
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        LOGGER.info("Pre-handling request");
+        log.info("Pre-handling request");
 
         // Get In-time in milliseconds and set in request context
         request.setAttribute("startTime", System.currentTimeMillis());
@@ -34,6 +34,8 @@ public class AuditInterceptor implements HandlerInterceptor   {
         // Get Thread ID and set in request context
         String threadId = RandomStringUtils.randomAlphanumeric(10);
         request.setAttribute("threadId", threadId);
+
+        log.info("Pre-handling request :: THREAD_ID :: {} ",threadId);
 
         return true; // Continue the request processing chain
     }

@@ -1,6 +1,5 @@
-package com.avensys.rts.accountservice.payload;
+package com.avensys.rts.accountservice.payloadrequest;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;

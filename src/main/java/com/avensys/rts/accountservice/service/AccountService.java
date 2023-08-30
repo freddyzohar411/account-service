@@ -1,11 +1,10 @@
 package com.avensys.rts.accountservice.service;
 
 import com.avensys.rts.accountservice.entity.AccountEntity;
-import com.avensys.rts.accountservice.payload.AccountRequestDTO;
-import com.avensys.rts.accountservice.payload.AccountResponseDTO;
+import com.avensys.rts.accountservice.payloadrequest.AccountRequestDTO;
+import com.avensys.rts.accountservice.payloadresponse.AccountResponseDTO;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Koh He Xiang
@@ -27,11 +26,18 @@ public interface AccountService {
     List<AccountResponseDTO> getAllAccounts();
 
     /**
+     * This method is used to get all accounts
+     * @return
+     */
+    List<AccountEntity> getAllAccountsEntity();
+
+
+    /**
      * This method is used to get account by id
      * @param id
      * @return
      */
-    AccountResponseDTO getAccountById(Long id);
+    AccountResponseDTO getAccountById(int id);
 
     /**
      * This method is used to update an account
@@ -44,7 +50,7 @@ public interface AccountService {
      * This method is used to delete an account
      * @param id
      */
-    void deleteAccount(Long id);
+    void deleteAccount(int id);
 
 
 }
