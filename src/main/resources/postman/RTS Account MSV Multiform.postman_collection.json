@@ -16,7 +16,7 @@
 					"formdata": [
 						{
 							"key": "accountInformation.accountName",
-							"value": "XYZ Company",
+							"value": "ABC Company",
 							"type": "text"
 						},
 						{
@@ -175,7 +175,12 @@
 						},
 						{
 							"key": "addressInformation.billingAddress.postalCode",
-							"value": "54321",
+							"value": "54321a",
+							"type": "text"
+						},
+						{
+							"key": "accountRemarks",
+							"value": "This account is a test account.",
 							"type": "text"
 						},
 						{
@@ -233,6 +238,220 @@
 					"port": "8100",
 					"path": [
 						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update account by Id",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "accountInformation.accountName",
+							"value": "XYZ Company",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.salesName",
+							"value": "Telsa",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.accountStatus",
+							"value": "draft",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.accountRating",
+							"value": "High",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.accountIndustry",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.subIndustry",
+							"value": "2",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.noOfEmployees",
+							"value": "100",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.revenueAmt",
+							"value": "1000000",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.revenueCur",
+							"value": "3",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.parentCompany",
+							"value": "2",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "accountInformation.website",
+							"value": "http://XYZCompany.com",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.accountSource",
+							"value": "Web",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.landlineCountry",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.landlineNumber",
+							"value": "12345",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.secondaryOwner",
+							"value": "Jane Smith",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.msa",
+							"value": "10",
+							"type": "text"
+						},
+						{
+							"key": "leadInformation.salesName",
+							"value": "John Doe",
+							"type": "text"
+						},
+						{
+							"key": "leadInformation.leadSource",
+							"value": "Referral",
+							"type": "text"
+						},
+						{
+							"key": "leadInformation.accountName",
+							"value": "Sample Account",
+							"type": "text"
+						},
+						{
+							"key": "addressInformation.address.line1",
+							"value": "123 Main St",
+							"type": "text"
+						},
+						{
+							"key": "addressInformation.address.line2",
+							"value": "Suite 456",
+							"type": "text"
+						},
+						{
+							"key": "addressInformation.address.line3",
+							"value": " ",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "addressInformation.address.city",
+							"value": "Cityville",
+							"type": "text"
+						},
+						{
+							"key": "addressInformation.address.country",
+							"value": "Country",
+							"type": "text"
+						},
+						{
+							"key": "addressInformation.address.postalCode",
+							"value": "12345",
+							"type": "text"
+						},
+						{
+							"key": "addressInformation.isSameAsBillingAddress",
+							"value": " false",
+							"type": "text"
+						},
+						{
+							"key": "addressInformation.billingAddress.line1",
+							"value": "789 Billing Ave",
+							"type": "text"
+						},
+						{
+							"key": "addressInformation.billingAddress.line2",
+							"value": " ",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "addressInformation.billingAddress.line3",
+							"value": " ",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "addressInformation.billingAddress.city",
+							"value": "SG",
+							"type": "text"
+						},
+						{
+							"key": "addressInformation.billingAddress.country",
+							"value": "BillCount",
+							"type": "text"
+						},
+						{
+							"key": "addressInformation.billingAddress.postalCode",
+							"value": "54321a",
+							"type": "text"
+						},
+						{
+							"key": "accountInformation.uploadAgreement",
+							"type": "file",
+							"src": "/C:/Users/Xiang/OneDrive - Avensys Consulting Pte Ltd/Desktop/1.5MB.pdf"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8100/accounts/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8100",
+					"path": [
+						"accounts",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete account by id",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8100/accounts/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8100",
+					"path": [
+						"accounts",
+						"1"
 					]
 				}
 			},
