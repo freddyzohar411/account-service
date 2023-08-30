@@ -8,7 +8,7 @@ import org.hibernate.validator.constraints.Length;
 
 /**
  * author: Koh He Xiang
- * This is the DTO class for the account information
+ * This is the DTO class for the account information request
  */
 @Data
 @AllArgsConstructor

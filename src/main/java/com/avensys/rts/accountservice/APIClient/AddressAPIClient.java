@@ -4,10 +4,9 @@ import com.avensys.rts.accountservice.customresponse.HttpResponse;
 import com.avensys.rts.accountservice.payloadrequest.AddressRequestDTO;
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * author Koh He Xiang
@@ -20,4 +19,11 @@ public interface AddressAPIClient {
 
     @GetMapping("/addresses/{addressId}")
     HttpResponse getAddressById(@PathVariable int addressId);
+
+    @PutMapping("/addresses/{addressId}")
+    HttpResponse updateAddress(@PathVariable int addressId, @RequestBody AddressRequestDTO address);
+
+    @DeleteMapping("/addresses/{addressId}")
+    HttpResponse deleteAddressById(@PathVariable int addressId);
+
 }

@@ -7,6 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
+/**
+ * author: Koh He Xiang
+ * This is the DTO class for the address request
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

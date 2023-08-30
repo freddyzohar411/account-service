@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * author: Koh He Xiang
- * This is the DTO class for the account information
+ * This is the DTO class for the account information request
  */
 @Data
 @NoArgsConstructor

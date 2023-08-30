@@ -7,6 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * author: Koh He Xiang
+ * This is the DTO class for the account response
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -66,4 +66,26 @@ public class AccountController {
         return ResponseUtil.generateSuccessResponse(accountsMap, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
+    /**
+     * Update an account
+     * @param accountId
+     * @param accountRequest
+     */
+    @PutMapping("/accounts/{accountId}")
+    public ResponseEntity<Object> updateAccount(@PathVariable int accountId, @Valid @ModelAttribute AccountRequestDTO accountRequest) {
+        AccountResponseDTO account = accountService.updateAccount(accountId, accountRequest);
+        return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
+    /**
+     * Delete an account
+     * @param accountId
+     * @return
+     */
+    @DeleteMapping("/accounts/{accountId}")
+    public ResponseEntity<Object> deleteAccountById(@PathVariable int accountId) {
+        accountService.deleteAccountById(accountId);
+        return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
 }

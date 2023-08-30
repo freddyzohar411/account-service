@@ -44,13 +44,13 @@ public interface AccountService {
      * @param accountRequest
      * @return
      */
-    AccountResponseDTO updateAccount(AccountRequestDTO accountRequest);
+    AccountResponseDTO updateAccount(int accountId, AccountRequestDTO accountRequest);
 
     /**
      * This method is used to delete an account
      * @param id
      */
-    void deleteAccount(int id);
+    void deleteAccountById(int id);
 
 
 }

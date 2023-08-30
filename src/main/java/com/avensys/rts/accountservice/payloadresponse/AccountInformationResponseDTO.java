@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * author: Koh He Xiang
- * This is the DTO class for the account information
+ * This is the DTO class for the account information response
  */
 @Data
 @NoArgsConstructor
@@ -71,8 +71,4 @@ public class AccountInformationResponseDTO {
     @NotNull(message = "MSA cannot be empty")
     private int msa;
 
-    @NotNull(message = "File cannot be null")
-    @ValidPdfFile(message = "File must be a PDF file")
-    @FileSize(maxSize = 1, message = "File size must be less than 1MB")
-    private MultipartFile uploadAgreement;
 }

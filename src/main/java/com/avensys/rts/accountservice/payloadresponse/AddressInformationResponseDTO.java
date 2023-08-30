@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * author: Koh He Xiang
- * This is the DTO class for the address information
+ * This is the DTO class for the address information response
  */
 @Data
 @AllArgsConstructor

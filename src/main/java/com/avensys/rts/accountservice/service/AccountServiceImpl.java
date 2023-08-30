@@ -3,6 +3,7 @@ package com.avensys.rts.accountservice.service;
 import com.avensys.rts.accountservice.APIClient.AddressAPIClient;
 import com.avensys.rts.accountservice.APIClient.DocumentAPIClient;
 import com.avensys.rts.accountservice.APIClient.IndustryAPIClient;
+import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
 import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.avensys.rts.accountservice.payloadrequest.*;
@@ -12,6 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,9 @@ import java.util.Optional;
  */
 @Service
 public class AccountServiceImpl implements AccountService {
+
+    private final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
+
     @Autowired
     private final AccountRepository accountRepository;
 
@@ -49,39 +55,18 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public AccountEntity createAccount(AccountRequestDTO accountRequestDTO) {
+
         // Logic to save account and relevant tables
-        System.out.println("Saving account");
         AccountEntity accountEntity = new AccountEntity();
         AccountInformationDTO accountInformation = accountRequestDTO.getAccountInformation();
         LeadInformationDTO leadInformation = accountRequestDTO.getLeadInformation();
         AddressInformationDTO addressInformation = accountRequestDTO.getAddressInformation();
 
         // Set Account Information
-        accountEntity.setRevenueCur(accountInformation.getRevenueCur());
-        accountEntity.setRevenueAmt(accountInformation.getRevenueAmt());
-        accountEntity.setName(accountInformation.getAccountName());
-        accountEntity.setStatus(accountInformation.getAccountStatus());
-        accountEntity.setRating(accountInformation.getAccountRating());
-        accountEntity.setNoOfEmployees(accountInformation.getNoOfEmployees());
-        accountEntity.setWebsite(accountInformation.getWebsite());
-        accountEntity.setAccountSource(accountInformation.getAccountSource());
-        accountEntity.setLandlineNumber(accountInformation.getLandlineNumber());
-        accountEntity.setSecondaryOwner(accountInformation.getSecondaryOwner());
-        accountEntity.setMsa(accountInformation.getMsa());
-        accountEntity.setIndustry(accountInformation.getAccountIndustry());
-        accountEntity.setSubIndustry(accountInformation.getSubIndustry());
-
-        // Save parent company
-        if (accountInformation.getParentCompany() != null) {
-            AccountEntity parentAccount = accountRepository.findById(accountInformation.getParentCompany()).orElseThrow(
-                    () -> new EntityNotFoundException("Parent company with %s not found".formatted(accountInformation.getParentCompany())));
-            accountEntity.setParentCompany(parentAccount);
-        }
+        accountInformationDTOToAccountEntity(accountInformation, accountEntity);
 
         // Set lead Information
-        accountEntity.setSalesName(leadInformation.getSalesName());
-        accountEntity.setLeadSource(leadInformation.getLeadSource());
-        accountEntity.setAccountName(leadInformation.getAccountName());
+        leadInformationDTOToAccountEntity(leadInformation, accountEntity);
 
         // Set account remarks
         accountEntity.setRemarks(accountRequestDTO.getAccountRemarks());
@@ -90,18 +75,9 @@ public class AccountServiceImpl implements AccountService {
         AccountEntity savedAccount = accountRepository.save(accountEntity);
 
         // Save Mailing address and Billing address (if same as mailing address)
-        AddressRequestDTO addressRequestDTO = new AddressRequestDTO();
-        addressRequestDTO.setLine1(addressInformation.getAddress().getLine1());
-        addressRequestDTO.setLine2(addressInformation.getAddress().getLine2());
-        addressRequestDTO.setLine3(addressInformation.getAddress().getLine3());
-        addressRequestDTO.setCity(addressInformation.getAddress().getCity());
-        addressRequestDTO.setCountry(addressInformation.getAddress().getCountry());
-        addressRequestDTO.setPostalCode(addressInformation.getAddress().getPostalCode());
-        addressRequestDTO.setType((short) 0);
-        addressRequestDTO.setEntityId(savedAccount.getId());
-        addressRequestDTO.setEntityType("account");
+        AddressRequestDTO mailingAddressRequest = accountRequestToAddressRequest(addressInformation.getAddress(), 0, MessageConstants.ACCOUNT_TYPE, savedAccount.getId());
         try {
-            HttpResponse mailAddressResponse = addressAPIClient.createAddress(addressRequestDTO);
+            HttpResponse mailAddressResponse = addressAPIClient.createAddress(mailingAddressRequest);
             AddressResponseDTO mailAddressData = mapClientBodyToClass(mailAddressResponse.getData(), AddressResponseDTO.class);
             savedAccount.setAddress(mailAddressData.getId());
         } catch (Exception e) {
@@ -110,9 +86,9 @@ public class AccountServiceImpl implements AccountService {
 
         // If same as mailing address is checked, then save Billing address
         if (addressInformation.getIsSameAsBillingAddress()) {
-            addressRequestDTO.setType((short) 1);
+            AddressRequestDTO billingAddressRequest = accountRequestToAddressRequest(addressInformation.getAddress(), 1, MessageConstants.ACCOUNT_TYPE, savedAccount.getId());
             try {
-                HttpResponse billingAddressResponse = addressAPIClient.createAddress(addressRequestDTO);
+                HttpResponse billingAddressResponse = addressAPIClient.createAddress(billingAddressRequest);
                 AddressResponseDTO billingAddressData = mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
                 savedAccount.setBillingAddress(billingAddressData.getId());
             } catch (Exception e) {
@@ -120,19 +96,11 @@ public class AccountServiceImpl implements AccountService {
             }
         }
 
-        // Save Billing address if not same as mailing address and billing address is not empty
+        // Save Billing address if not same as mailing address
         if (!addressInformation.getIsSameAsBillingAddress()) {
-            addressRequestDTO.setLine1(addressInformation.getBillingAddress().getLine1());
-            addressRequestDTO.setLine2(addressInformation.getBillingAddress().getLine2());
-            addressRequestDTO.setLine3(addressInformation.getBillingAddress().getLine3());
-            addressRequestDTO.setCity(addressInformation.getBillingAddress().getCity());
-            addressRequestDTO.setCountry(addressInformation.getBillingAddress().getCountry());
-            addressRequestDTO.setPostalCode(addressInformation.getBillingAddress().getPostalCode());
-            addressRequestDTO.setType((short) 1);
-            addressRequestDTO.setEntityId(savedAccount.getId());
-            addressRequestDTO.setEntityType("account");
+            AddressRequestDTO billingAddressRequest = accountRequestToAddressRequest(addressInformation.getBillingAddress(), 1, MessageConstants.ACCOUNT_TYPE, savedAccount.getId());
             try {
-                HttpResponse billingAddressResponse = addressAPIClient.createAddress(addressRequestDTO);
+                HttpResponse billingAddressResponse = addressAPIClient.createAddress(billingAddressRequest);
                 AddressResponseDTO billingAddressData = mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
                 savedAccount.setBillingAddress(billingAddressData.getId());
             } catch (Exception e) {
@@ -145,12 +113,15 @@ public class AccountServiceImpl implements AccountService {
             DocumentRequestDTO documentRequestDTO = new DocumentRequestDTO();
             documentRequestDTO.setEntityId(savedAccount.getId());
             documentRequestDTO.setType("agreement");
+            documentRequestDTO.setTitle(accountInformation.getUploadAgreement().getOriginalFilename());
             documentRequestDTO.setFile(accountInformation.getUploadAgreement());
             HttpResponse documentResponse = documentAPIClient.createDocument(documentRequestDTO);
             DocumentResponseDTO documentData = mapClientBodyToClass(documentResponse.getData(), DocumentResponseDTO.class);
         }
 
-        return accountRepository.save(accountEntity);
+        AccountEntity accountSaved = accountRepository.save(savedAccount);
+        log.info("Account saved successfully");
+        return accountSaved;
     }
 
     /**
@@ -174,26 +145,88 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to get account by id
-     * @param id
+     * @param accountId
      * @return AccountResponseDTO
      */
     @Override
-    public AccountResponseDTO getAccountById(int id) {
-        AccountEntity accountEntity = accountRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Account with %s not found".formatted(id))
+    public AccountResponseDTO getAccountById(int accountId) {
+        AccountEntity accountEntity = accountRepository.findById(accountId).orElseThrow(
+                () -> new EntityNotFoundException("Account with %s not found".formatted(accountId))
         );
         return accountEntityToAccountResponseDTO(accountEntity);
     }
 
     /**
      * This method is used to update an account
-     * @param accountRequest
+     * @param accountRequestDTO
      * @return AccountResponseDTO
      */
     @Override
-    public AccountResponseDTO updateAccount(AccountRequestDTO accountRequest) {
-        // Logic to update account and relevant tables
-        return null;
+    public AccountResponseDTO updateAccount(int accountId, AccountRequestDTO accountRequestDTO) {
+        // Find an account by id
+        AccountEntity accountFound = accountRepository.findById(accountId).orElseThrow(
+                () -> new EntityNotFoundException("Account with %s not found".formatted(accountId))
+        );
+
+        // Logic Update account and relevant tables
+        AccountInformationDTO accountInformation = accountRequestDTO.getAccountInformation();
+        LeadInformationDTO leadInformation = accountRequestDTO.getLeadInformation();
+        AddressInformationDTO addressInformation = accountRequestDTO.getAddressInformation();
+
+        // Set updated Account Information
+        accountInformationDTOToAccountEntity(accountInformation, accountFound);
+
+        // Set updated lead Information
+        leadInformationDTOToAccountEntity(leadInformation, accountFound);
+
+        // Set updated account remarks
+        accountFound.setRemarks(accountRequestDTO.getAccountRemarks());
+
+        // Update Mailing address and Billing address (if same as mailing address)
+        AddressRequestDTO mailingAddressRequest = accountRequestToAddressRequest(addressInformation.getAddress(), 0, MessageConstants.ACCOUNT_TYPE, accountFound.getId());
+        try {
+            HttpResponse mailAddressResponse = addressAPIClient.updateAddress(accountFound.getAddress(),mailingAddressRequest);
+            AddressResponseDTO mailAddressData = mapClientBodyToClass(mailAddressResponse.getData(), AddressResponseDTO.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Error saving address." + e.getMessage());
+        }
+
+        // If same as mailing address is checked, then Update Billing address
+        if (addressInformation.getIsSameAsBillingAddress()) {
+            AddressRequestDTO billingAddressRequest = accountRequestToAddressRequest(addressInformation.getAddress(), 1, MessageConstants.ACCOUNT_TYPE, accountFound.getId());
+            try {
+                HttpResponse billingAddressResponse = addressAPIClient.updateAddress(accountFound.getBillingAddress(),billingAddressRequest);
+                AddressResponseDTO billingAddressData = mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
+            } catch (Exception e) {
+                throw new RuntimeException("Error saving billing address." + e.getMessage());
+            }
+        }
+
+        // Update Billing address if not same as mailing address
+        if (!addressInformation.getIsSameAsBillingAddress()) {
+            AddressRequestDTO billingAddressRequest = accountRequestToAddressRequest(addressInformation.getBillingAddress(), 1, MessageConstants.ACCOUNT_TYPE, accountFound.getId());
+            try {
+                HttpResponse billingAddressResponse = addressAPIClient.updateAddress(accountFound.getBillingAddress(), billingAddressRequest);
+                AddressResponseDTO billingAddressData = mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
+            } catch (Exception e) {
+                throw new RuntimeException("Error saving billing address." + e.getMessage());
+            }
+        }
+
+        // Update Document
+        if (accountInformation.getUploadAgreement() != null) {
+            DocumentRequestDTO documentRequestDTO = new DocumentRequestDTO();
+            documentRequestDTO.setType("agreement");
+            documentRequestDTO.setTitle(accountInformation.getUploadAgreement().getOriginalFilename());
+            documentRequestDTO.setFile(accountInformation.getUploadAgreement());
+            documentRequestDTO.setEntityId(accountFound.getId());
+            HttpResponse documentResponse = documentAPIClient.updateDocument(documentRequestDTO);
+            DocumentResponseDTO documentData = mapClientBodyToClass(documentResponse.getData(), DocumentResponseDTO.class);
+        }
+
+        AccountEntity accountUpdated = accountRepository.save(accountFound);
+
+        return accountEntityToAccountResponseDTO(accountUpdated);
     }
 
     /**
@@ -201,43 +234,37 @@ public class AccountServiceImpl implements AccountService {
      * @param id
      */
     @Override
-    public void deleteAccount(int id) {
-        Optional<AccountEntity> accountEntity = accountRepository.findById(id);
+    public void deleteAccountById(int id) {
+        AccountEntity accountEntity = accountRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Account with %s not found".formatted(id))
+        );
         // Logic to delete account and dependent tables
+
+        // Delete Mailing address
+        if (accountEntity.getAddress() != null) {
+            HttpResponse mailAddressResponse = addressAPIClient.deleteAddressById(accountEntity.getAddress());
+        }
+        // Delete Billing address
+        if (accountEntity.getBillingAddress() != null) {
+            HttpResponse billingAddressResponse = addressAPIClient.deleteAddressById(accountEntity.getBillingAddress());
+        }
+        // Delete Document
+        DocumentDeleteRequestDTO documentDeleteRequestDTO = new DocumentDeleteRequestDTO();
+        documentDeleteRequestDTO.setEntityId(accountEntity.getId());
+        documentDeleteRequestDTO.setType("agreement");
+        documentAPIClient.deleteDocumentByEntityIdAndType(documentDeleteRequestDTO);
+
+        // Delete Account
+        accountRepository.deleteById(id);
     }
 
-    private AccountEntity ToAccountEntity(AccountRequestDTO accountRequestDTO) {
-        AccountEntity accountEntity = new AccountEntity();
-        AccountInformationDTO accountInformation = accountRequestDTO.getAccountInformation();
-        LeadInformationDTO leadInformation = accountRequestDTO.getLeadInformation();
-        AddressInformationDTO addressInformation = accountRequestDTO.getAddressInformation();
-
-        accountEntity.setName(accountInformation.getAccountName());
-        accountEntity.setStatus(accountInformation.getAccountStatus());
-        accountEntity.setRating(accountInformation.getAccountRating());
-        accountEntity.setIndustry(10);  // Need to key from industry
-        accountEntity.setSubIndustry(12);  // Need to key from industry
-        accountEntity.setNoOfEmployees(accountInformation.getNoOfEmployees());
-        accountEntity.setRevenueAmt(accountInformation.getRevenueAmt());
-        accountEntity.setRevenueCur(1);  // Need to key from currency
-//        accountEntity.setParentCompany(23); // Need to key from company
-        accountEntity.setWebsite(accountInformation.getWebsite());
-        accountEntity.setAccountSource(accountInformation.getAccountSource());
-        accountEntity.setLandlineCountry(accountInformation.getLandlineCountry());
-        accountEntity.setLandlineNumber(accountInformation.getLandlineNumber());
-        accountEntity.setSecondaryOwner(accountInformation.getSecondaryOwner());
-        accountEntity.setMsa(accountInformation.getMsa()); // Not in Account
-        accountEntity.setSalesName(leadInformation.getSalesName());
-        accountEntity.setLeadSource(leadInformation.getLeadSource());
-        accountEntity.setAccountName(leadInformation.getAccountName());
-        accountEntity.setAddress(2); // Address microservice
-        accountEntity.setBillingAddress(3); // Address microservice
-        accountEntity.setRemarks(accountRequestDTO.getAccountRemarks());
-        accountEntity.setMsp(30.0);
-        accountEntity.setMarkup(20.0);
-        return accountEntity;
-    }
-
+    /**
+     * This method is used to convert Object to Class
+     * Use to convert API client Httpresponse back to DTO class
+     * @param body
+     * @param mappedDTO <T>
+     * @return T
+     */
     private <T> T mapClientBodyToClass(Object body, Class<T> mappedDTO) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
@@ -245,8 +272,67 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
+     * This method is used to convert AccountInformationDTO to AccountEntity
+     * @param accountInformationDTO
+     * @param accountEntity
+     */
+    private void accountInformationDTOToAccountEntity(AccountInformationDTO accountInformationDTO, AccountEntity accountEntity) {
+        accountEntity.setName(accountInformationDTO.getAccountName());
+        accountEntity.setStatus(accountInformationDTO.getAccountStatus());
+        accountEntity.setRating(accountInformationDTO.getAccountRating());
+        accountEntity.setIndustry(accountInformationDTO.getAccountIndustry());
+        accountEntity.setSubIndustry(accountInformationDTO.getSubIndustry());
+        accountEntity.setNoOfEmployees(accountInformationDTO.getNoOfEmployees());
+        accountEntity.setRevenueAmt(accountInformationDTO.getRevenueAmt());
+        accountEntity.setRevenueCur(accountInformationDTO.getRevenueCur());
+        if (accountInformationDTO.getParentCompany() != null) {
+            AccountEntity parentAccount = accountRepository.findById(accountInformationDTO.getParentCompany()).orElseThrow(
+                    () -> new EntityNotFoundException("Parent company with %s not found".formatted(accountInformationDTO.getParentCompany())));
+            accountEntity.setParentCompany(parentAccount);
+        }
+        accountEntity.setWebsite(accountInformationDTO.getWebsite());
+        accountEntity.setAccountSource(accountInformationDTO.getAccountSource());
+        accountEntity.setLandlineCountry(accountInformationDTO.getLandlineCountry());
+        accountEntity.setLandlineNumber(accountInformationDTO.getLandlineNumber());
+        accountEntity.setSecondaryOwner(accountInformationDTO.getSecondaryOwner());
+        accountEntity.setMsa(accountInformationDTO.getMsa());
+    }
+
+    /**
+     * This method is used to convert LeadInformationDTO to AccountEntity
+     * @param leadInformationDTO
+     * @param accountEntity
+     */
+    private void leadInformationDTOToAccountEntity(LeadInformationDTO leadInformationDTO, AccountEntity accountEntity) {
+        accountEntity.setSalesName(leadInformationDTO.getSalesName());
+        accountEntity.setLeadSource(leadInformationDTO.getLeadSource());
+        accountEntity.setAccountName(leadInformationDTO.getAccountName());
+    }
+
+    /**
+     * This method is used to convert AddressDTO to AddressRequestDTO
+     * @param addressRequest
+     * @param type
+     * @param EntityType
+     * @param entityId
+     * @return
+     */
+    private AddressRequestDTO accountRequestToAddressRequest(AddressDTO addressRequest, int type, String EntityType, int entityId) {
+        AddressRequestDTO addressRequestDTO = new AddressRequestDTO();
+        addressRequestDTO.setLine1(addressRequest.getLine1());
+        addressRequestDTO.setLine2(addressRequest.getLine2());
+        addressRequestDTO.setLine3(addressRequest.getLine3());
+        addressRequestDTO.setCity(addressRequest.getCity());
+        addressRequestDTO.setCountry(addressRequest.getCountry());
+        addressRequestDTO.setPostalCode(addressRequest.getPostalCode());
+        addressRequestDTO.setType((short) type);
+        addressRequestDTO.setEntityId(entityId);
+        addressRequestDTO.setEntityType(EntityType);
+        return  addressRequestDTO;
+    }
+
+    /**
      * This method is used to convert AccountEntity to AccountInformationDTO
-     *
      * @param accountEntity
      * @return AccountInformationDTO
      */
