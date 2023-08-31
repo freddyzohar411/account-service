@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
  *
  */
 
-@Entity
+@Entity(name = "account")
 @Table(name = "account")
 @Data
 @AllArgsConstructor
@@ -21,9 +21,10 @@ public class AccountEntity {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;
 
-    @Column(name = "name", length = 50, nullable = false, unique = true)
+    @Column(name = "name", length = 50, nullable = false)
     private String name;
 
     @Column(name = "status", length = 10 , nullable = false)

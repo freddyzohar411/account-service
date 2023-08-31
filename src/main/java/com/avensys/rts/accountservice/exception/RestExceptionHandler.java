@@ -100,4 +100,9 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler  {
         }
         return ResponseUtil.generateErrorResponse(HttpStatus.valueOf(ex.status()), res.getMessage());
     }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Object> handleDuplicateResourceException(DuplicateResourceException ex) {
+        return ResponseUtil.generateErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
 }

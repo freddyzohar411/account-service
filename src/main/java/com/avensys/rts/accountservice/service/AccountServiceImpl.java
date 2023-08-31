@@ -6,11 +6,13 @@ import com.avensys.rts.accountservice.APIClient.IndustryAPIClient;
 import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
 import com.avensys.rts.accountservice.entity.AccountEntity;
+import com.avensys.rts.accountservice.exception.DuplicateResourceException;
 import com.avensys.rts.accountservice.payloadrequest.*;
 import com.avensys.rts.accountservice.payloadresponse.*;
 import com.avensys.rts.accountservice.repository.AccountRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.sun.jdi.request.DuplicateRequestException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -55,6 +57,10 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public AccountEntity createAccount(AccountRequestDTO accountRequestDTO) {
+        // Check if name exist
+        if (accountRepository.existByName(accountRequestDTO.getAccountInformation().getAccountName())) {
+            throw new DuplicateResourceException("Account name already exists");
+        }
 
         // Logic to save account and relevant tables
         AccountEntity accountEntity = new AccountEntity();
@@ -130,7 +136,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public List<AccountResponseDTO> getAllAccounts() {
-        List<AccountEntity> accountEntities = accountRepository.findAll();
+        List<AccountEntity> accountEntities = accountRepository.findAllAndDeleted(false);
         return accountEntities.stream().map(this::accountEntityToAccountResponseDTO).toList();
     }
 
@@ -150,7 +156,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public AccountResponseDTO getAccountById(int accountId) {
-        AccountEntity accountEntity = accountRepository.findById(accountId).orElseThrow(
+        AccountEntity accountEntity = accountRepository.findByIdAndDeleted(accountId, false).orElseThrow(
                 () -> new EntityNotFoundException("Account with %s not found".formatted(accountId))
         );
         return accountEntityToAccountResponseDTO(accountEntity);
@@ -164,7 +170,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountResponseDTO updateAccount(int accountId, AccountRequestDTO accountRequestDTO) {
         // Find an account by id
-        AccountEntity accountFound = accountRepository.findById(accountId).orElseThrow(
+        AccountEntity accountFound = accountRepository.findByIdAndDeleted(accountId, false).orElseThrow(
                 () -> new EntityNotFoundException("Account with %s not found".formatted(accountId))
         );
 
@@ -235,27 +241,31 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public void deleteAccountById(int id) {
-        AccountEntity accountEntity = accountRepository.findById(id).orElseThrow(
+        AccountEntity accountEntity = accountRepository.findByIdAndDeleted(id, false).orElseThrow(
                 () -> new EntityNotFoundException("Account with %s not found".formatted(id))
         );
-        // Logic to delete account and dependent tables
 
-        // Delete Mailing address
-        if (accountEntity.getAddress() != null) {
-            HttpResponse mailAddressResponse = addressAPIClient.deleteAddressById(accountEntity.getAddress());
-        }
-        // Delete Billing address
-        if (accountEntity.getBillingAddress() != null) {
-            HttpResponse billingAddressResponse = addressAPIClient.deleteAddressById(accountEntity.getBillingAddress());
-        }
-        // Delete Document
-        DocumentDeleteRequestDTO documentDeleteRequestDTO = new DocumentDeleteRequestDTO();
-        documentDeleteRequestDTO.setEntityId(accountEntity.getId());
-        documentDeleteRequestDTO.setType("agreement");
-        documentAPIClient.deleteDocumentByEntityIdAndType(documentDeleteRequestDTO);
-
-        // Delete Account
-        accountRepository.deleteById(id);
+        // Soft delete account
+        accountEntity.setDeleted(true);
+        accountRepository.save(accountEntity);
+//        // Hard Delete - Logic to delete account and dependent tables
+//
+//        // Delete Mailing address
+//        if (accountEntity.getAddress() != null) {
+//            HttpResponse mailAddressResponse = addressAPIClient.deleteAddressById(accountEntity.getAddress());
+//        }
+//        // Delete Billing address
+//        if (accountEntity.getBillingAddress() != null) {
+//            HttpResponse billingAddressResponse = addressAPIClient.deleteAddressById(accountEntity.getBillingAddress());
+//        }
+//        // Delete Document
+//        DocumentDeleteRequestDTO documentDeleteRequestDTO = new DocumentDeleteRequestDTO();
+//        documentDeleteRequestDTO.setEntityId(accountEntity.getId());
+//        documentDeleteRequestDTO.setType("agreement");
+//        documentAPIClient.deleteDocumentByEntityIdAndType(documentDeleteRequestDTO);
+//
+//        // Delete Account
+//        accountRepository.deleteById(id);
     }
 
     /**
