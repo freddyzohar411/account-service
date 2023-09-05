@@ -2,7 +2,10 @@ package com.avensys.rts.accountservice.service;
 
 import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.avensys.rts.accountservice.payloadrequest.AccountRequestDTO;
+import com.avensys.rts.accountservice.payloadrequest.CommercialRequestDTO;
+import com.avensys.rts.accountservice.payloadresponse.AccountNameReponseDTO;
 import com.avensys.rts.accountservice.payloadresponse.AccountResponseDTO;
+import com.avensys.rts.accountservice.payloadresponse.CommercialResponseDTO;
 
 import java.util.List;
 
@@ -17,13 +20,19 @@ public interface AccountService {
      * @param accountRequest
      * @return
      */
-    AccountEntity createAccount(AccountRequestDTO accountRequest);
+    AccountResponseDTO createAccount(AccountRequestDTO accountRequest);
 
     /**
      * This method is used to get all accounts
      * @return
      */
     List<AccountResponseDTO> getAllAccounts();
+
+    /**
+     * This method is used to get all accounts name
+     * @return
+     */
+    List<AccountNameReponseDTO> getAllAccountsName();
 
     /**
      * This method is used to get all accounts
@@ -52,5 +61,19 @@ public interface AccountService {
      */
     void deleteAccountById(int id);
 
+    /**
+     * This method is used to set the account commercial
+     * @param accountId
+     * @param commercialRequest
+     * @return AccountResponseDTO
+     */
+    CommercialResponseDTO setAccountCommercial (int accountId, CommercialRequestDTO commercialRequest);
+
+    /**
+     * This method is used to get the account commercial
+     * @param accountId
+     * @return
+     */
+    CommercialResponseDTO getAccountCommercialById (int accountId);
 
 }

@@ -1,6 +1,7 @@
 package com.avensys.rts.accountservice.payloadrequest;
 
 import com.avensys.rts.accountservice.annotation.FileSize;
+import com.avensys.rts.accountservice.annotation.URLOrNull;
 import com.avensys.rts.accountservice.annotation.ValidPdfFile;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -31,7 +32,7 @@ public class AccountInformationDTO {
     private String accountStatus;
 
     @NotEmpty(message = "Account rating cannot be empty")
-    @Length(max = 5)
+    @Length(max = 10)
     private String accountRating;
 
     private Integer accountIndustry;
@@ -39,7 +40,7 @@ public class AccountInformationDTO {
     private Integer subIndustry;
 
     @PositiveOrZero(message = "Number of employees cannot be negative")
-    private int noOfEmployees;
+    private Integer noOfEmployees;
 
     @PositiveOrZero(message = "Revenue amount cannot be negative")
     private double revenueAmt;
@@ -48,8 +49,8 @@ public class AccountInformationDTO {
 
     private Integer parentCompany;
 
-    @URL
     @Length(max = 250)
+    @URLOrNull(message = "Website must be a valid URL")
     private String website;
 
     @NotEmpty(message = "Account source cannot be empty")
@@ -62,14 +63,13 @@ public class AccountInformationDTO {
     @PositiveOrZero(message = "Landline country cannot be negative")
     private Integer landlineNumber;
 
-    @NotEmpty(message = "Secondary owner cannot be empty")
     @Length(max = 50)
     private String secondaryOwner;
 
     @NotNull(message = "MSA cannot be empty")
-    private int msa;
+    private Integer msa;
 
-    @NotNull(message = "File cannot be null")
+//    @NotNull(message = "File cannot be null")
     @ValidPdfFile(message = "File must be a PDF file")
     @FileSize(maxSize = 1, message = "File size must be less than 1MB")
     private MultipartFile uploadAgreement;

@@ -27,10 +27,13 @@ public class AccountEntity {
     @Column(name = "name", length = 50, nullable = false)
     private String name;
 
+    @Column (name = "sales_name", length = 50)
+    private String salesName;
+
     @Column(name = "status", length = 10 , nullable = false)
     private String status;
 
-    @Column(name = "rating", length = 5, nullable = false)
+    @Column(name = "rating", length = 10, nullable = false)
     private String rating;
 
     @Column(name = "industry")
@@ -70,8 +73,8 @@ public class AccountEntity {
     @Column(name = "msa", columnDefinition = "smallint")
     private Integer msa;
 
-    @Column (name = "sales_name", length = 50 , nullable = false)
-    private String salesName;
+    @Column (name = "lead_sales_name", length = 50 , nullable = false)
+    private String leadSalesName;
 
     @Column (name = "lead_source", length = 50)
     private String leadSource;

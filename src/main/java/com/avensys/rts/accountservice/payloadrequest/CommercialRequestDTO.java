@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 
 /**
  * author: Koh He Xiang
- * This is the DTO class for the document delete request
+ * This is the DTO class for the Commercial response
  */
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class DocumentDeleteRequestDTO {
-    private String entityType;
-    private Integer entityId;
+@NoArgsConstructor
+public class CommercialRequestDTO {
+    private Double markUp;
+    private Double msp ;
 }

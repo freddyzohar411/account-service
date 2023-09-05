@@ -18,6 +18,7 @@ public class DocumentRequestDTO {
     private String type;
     private String title;
     private String description;
-    private int entityId;
+    private Integer entityId;
+    private String entityType;
     MultipartFile file;
 }

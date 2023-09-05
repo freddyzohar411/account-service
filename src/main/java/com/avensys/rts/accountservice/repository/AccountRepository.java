@@ -22,4 +22,5 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Integer>
 
         @Query(value = "SELECT CASE WHEN COUNT(a) > 0 THEN TRUE ELSE FALSE END FROM account a WHERE a.name = ?1 AND a.isDeleted = false")
         boolean existByName(String name);
+
 }

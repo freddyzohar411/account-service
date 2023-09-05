@@ -29,4 +29,7 @@ public interface DocumentAPIClient {
     @DeleteMapping("/documents")
     HttpResponse deleteDocumentByEntityIdAndType(@RequestBody DocumentDeleteRequestDTO documentDeleteRequestDTO);
 
+    @GetMapping("/documents")
+    HttpResponse getDocumentByEntityTypeAndId(@RequestParam String entityType, @RequestParam int entityId);
+
 }

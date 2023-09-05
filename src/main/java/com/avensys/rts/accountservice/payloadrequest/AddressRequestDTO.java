@@ -38,7 +38,7 @@ public class AddressRequestDTO {
     private Short type;
 
     @NotNull
-    private int entityId;
+    private Integer entityId;
 
     @NotEmpty
     @Length(max = 15)

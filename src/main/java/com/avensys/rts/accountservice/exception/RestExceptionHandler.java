@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -25,9 +25,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Koh He Xiang
@@ -37,7 +35,16 @@ import java.util.Map;
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler  {
 
-    // This handles the incoming JSON validation errors
+    private final Logger log = LoggerFactory.getLogger(RestExceptionHandler.class);
+
+    /**
+     * This method is used to handle the exceptions thrown by the HttpMessageNotReadableException.
+     * @param ex
+     * @param headers
+     * @param status
+     * @param request
+     * @return
+     */
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                   HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -45,6 +52,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler  {
         return ResponseUtil.generateErrorResponse(HttpStatus.BAD_REQUEST, error);
     }
 
+    /**
+     * This method is used to handle the exceptions thrown by the MethodArgumentNotValidException.
+     * Validation exceptions are thrown by the @Valid annotation.
+     * @param ex
+     * @param headers
+     * @param status
+     * @param request
+     * @return
+     */
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         BindingResult bindingResult = ex.getBindingResult();
@@ -58,9 +74,19 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler  {
             errors.add(globalError.getDefaultMessage());
         }
 
+        log.error("Validation errors: {}", errors.toString());
+
         return ResponseUtil.generateErrorResponse(HttpStatus.BAD_REQUEST, errors.toString());
     }
 
+    /**
+     * This method is used to handle the exceptions thrown by the MissingServletRequestParameterException.
+     * @param ex
+     * @param headers
+     * @param status
+     * @param request
+     * @return
+     */
     @Override
     protected ResponseEntity<Object> handleMissingServletRequestParameter(
             MissingServletRequestParameterException ex,
@@ -72,12 +98,21 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler  {
         return ResponseUtil.generateErrorResponse(HttpStatus.BAD_REQUEST, error);
     }
 
-
+    /**
+     * This method is used to handle the general exceptions thrown by the run time.
+     * @param ex
+     * @return
+     */
     @ExceptionHandler(value = RuntimeException.class)
     public ResponseEntity<Object> exception(RuntimeException ex) {
         return ResponseUtil.generateErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
+    /**
+     * This method is used to handle the EntityNotFoundException thrown by the JPA repository.
+     * @param ex
+     * @return
+     */
     @ExceptionHandler(EntityNotFoundException.class)
     protected ResponseEntity<Object> handleEntityNotFound(EntityNotFoundException ex) {
         return ResponseUtil.generateErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
@@ -101,8 +136,24 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler  {
         return ResponseUtil.generateErrorResponse(HttpStatus.valueOf(ex.status()), res.getMessage());
     }
 
+    /**
+     * This method is used to handle the exceptions thrown by the Feign client.
+     * @param ex
+     * @return
+     */
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<Object> handleDuplicateResourceException(DuplicateResourceException ex) {
         return ResponseUtil.generateErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
+
+    /**
+     * This method is used to handle RequiredDocumentMissingException
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(RequiredDocumentMissingException.class)
+    public ResponseEntity<Object> handleMissingDocumentException(RequiredDocumentMissingException ex) {
+        return ResponseUtil.generateErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
 }

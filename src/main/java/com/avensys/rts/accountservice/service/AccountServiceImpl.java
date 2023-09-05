@@ -7,14 +7,17 @@ import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
 import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.avensys.rts.accountservice.exception.DuplicateResourceException;
+import com.avensys.rts.accountservice.exception.RequiredDocumentMissingException;
 import com.avensys.rts.accountservice.payloadrequest.*;
 import com.avensys.rts.accountservice.payloadresponse.*;
 import com.avensys.rts.accountservice.repository.AccountRepository;
+import com.avensys.rts.accountservice.util.MappingUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sun.jdi.request.DuplicateRequestException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,9 @@ import java.util.Optional;
 @Service
 public class AccountServiceImpl implements AccountService {
 
+    private final String ACTIVE_STATUS = "active";
+    private final String ACCOUNT_TYPE = "account";
+
     private final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     @Autowired
@@ -37,9 +43,6 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private AddressAPIClient addressAPIClient;
-
-    @Autowired
-    private IndustryAPIClient industryAPIClient;
 
     @Autowired
     private DocumentAPIClient documentAPIClient;
@@ -50,17 +53,13 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to save account
-     * Need to implement roll back if error occurs.
+     * Roll back occur if one of the save fails
      * @param accountRequestDTO
      * @return
      */
     @Override
     @Transactional
-    public AccountEntity createAccount(AccountRequestDTO accountRequestDTO) {
-        // Check if name exist
-        if (accountRepository.existByName(accountRequestDTO.getAccountInformation().getAccountName())) {
-            throw new DuplicateResourceException("Account name already exists");
-        }
+    public AccountResponseDTO createAccount(AccountRequestDTO accountRequestDTO) {
 
         // Logic to save account and relevant tables
         AccountEntity accountEntity = new AccountEntity();
@@ -84,7 +83,7 @@ public class AccountServiceImpl implements AccountService {
         AddressRequestDTO mailingAddressRequest = accountRequestToAddressRequest(addressInformation.getAddress(), 0, MessageConstants.ACCOUNT_TYPE, savedAccount.getId());
         try {
             HttpResponse mailAddressResponse = addressAPIClient.createAddress(mailingAddressRequest);
-            AddressResponseDTO mailAddressData = mapClientBodyToClass(mailAddressResponse.getData(), AddressResponseDTO.class);
+            AddressResponseDTO mailAddressData = MappingUtil.mapClientBodyToClass(mailAddressResponse.getData(), AddressResponseDTO.class);
             savedAccount.setAddress(mailAddressData.getId());
         } catch (Exception e) {
             throw new RuntimeException("Error saving address." + e.getMessage());
@@ -95,7 +94,7 @@ public class AccountServiceImpl implements AccountService {
             AddressRequestDTO billingAddressRequest = accountRequestToAddressRequest(addressInformation.getAddress(), 1, MessageConstants.ACCOUNT_TYPE, savedAccount.getId());
             try {
                 HttpResponse billingAddressResponse = addressAPIClient.createAddress(billingAddressRequest);
-                AddressResponseDTO billingAddressData = mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
+                AddressResponseDTO billingAddressData = MappingUtil.mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
                 savedAccount.setBillingAddress(billingAddressData.getId());
             } catch (Exception e) {
                 throw new RuntimeException("Error saving billing address." + e.getMessage());
@@ -107,7 +106,7 @@ public class AccountServiceImpl implements AccountService {
             AddressRequestDTO billingAddressRequest = accountRequestToAddressRequest(addressInformation.getBillingAddress(), 1, MessageConstants.ACCOUNT_TYPE, savedAccount.getId());
             try {
                 HttpResponse billingAddressResponse = addressAPIClient.createAddress(billingAddressRequest);
-                AddressResponseDTO billingAddressData = mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
+                AddressResponseDTO billingAddressData = MappingUtil.mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
                 savedAccount.setBillingAddress(billingAddressData.getId());
             } catch (Exception e) {
                 throw new RuntimeException("Error saving billing address." + e.getMessage());
@@ -117,17 +116,20 @@ public class AccountServiceImpl implements AccountService {
         // Save Document
         if (accountInformation.getUploadAgreement() != null) {
             DocumentRequestDTO documentRequestDTO = new DocumentRequestDTO();
+            // Save document and tag to account entity
             documentRequestDTO.setEntityId(savedAccount.getId());
-            documentRequestDTO.setType("agreement");
-            documentRequestDTO.setTitle(accountInformation.getUploadAgreement().getOriginalFilename());
+            documentRequestDTO.setEntityType(ACCOUNT_TYPE);
+
             documentRequestDTO.setFile(accountInformation.getUploadAgreement());
             HttpResponse documentResponse = documentAPIClient.createDocument(documentRequestDTO);
-            DocumentResponseDTO documentData = mapClientBodyToClass(documentResponse.getData(), DocumentResponseDTO.class);
+            DocumentResponseDTO documentData = MappingUtil.mapClientBodyToClass(documentResponse.getData(), DocumentResponseDTO.class);
+        } else {
+            throw new RequiredDocumentMissingException("Upload agreement document is required");
         }
 
         AccountEntity accountSaved = accountRepository.save(savedAccount);
         log.info("Account saved successfully");
-        return accountSaved;
+        return accountEntityToAccountResponseDTO(accountSaved);
     }
 
     /**
@@ -138,6 +140,16 @@ public class AccountServiceImpl implements AccountService {
     public List<AccountResponseDTO> getAllAccounts() {
         List<AccountEntity> accountEntities = accountRepository.findAllAndDeleted(false);
         return accountEntities.stream().map(this::accountEntityToAccountResponseDTO).toList();
+    }
+
+    /**
+     * This method is used to get all accounts and map it to account name DTO
+     * @return List<AccountNameReponseDTO>
+     */
+    @Override
+    public List<AccountNameReponseDTO> getAllAccountsName() {
+        List<AccountEntity> accountEntities = accountRepository.findAllAndDeleted(false);
+        return accountEntities.stream().map(this::accountEntityToAccountNameResponseDTO).toList();
     }
 
     /**
@@ -192,7 +204,7 @@ public class AccountServiceImpl implements AccountService {
         AddressRequestDTO mailingAddressRequest = accountRequestToAddressRequest(addressInformation.getAddress(), 0, MessageConstants.ACCOUNT_TYPE, accountFound.getId());
         try {
             HttpResponse mailAddressResponse = addressAPIClient.updateAddress(accountFound.getAddress(),mailingAddressRequest);
-            AddressResponseDTO mailAddressData = mapClientBodyToClass(mailAddressResponse.getData(), AddressResponseDTO.class);
+            AddressResponseDTO mailAddressData = MappingUtil.mapClientBodyToClass(mailAddressResponse.getData(), AddressResponseDTO.class);
         } catch (Exception e) {
             throw new RuntimeException("Error saving address." + e.getMessage());
         }
@@ -202,7 +214,7 @@ public class AccountServiceImpl implements AccountService {
             AddressRequestDTO billingAddressRequest = accountRequestToAddressRequest(addressInformation.getAddress(), 1, MessageConstants.ACCOUNT_TYPE, accountFound.getId());
             try {
                 HttpResponse billingAddressResponse = addressAPIClient.updateAddress(accountFound.getBillingAddress(),billingAddressRequest);
-                AddressResponseDTO billingAddressData = mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
+                AddressResponseDTO billingAddressData = MappingUtil.mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
             } catch (Exception e) {
                 throw new RuntimeException("Error saving billing address." + e.getMessage());
             }
@@ -213,7 +225,7 @@ public class AccountServiceImpl implements AccountService {
             AddressRequestDTO billingAddressRequest = accountRequestToAddressRequest(addressInformation.getBillingAddress(), 1, MessageConstants.ACCOUNT_TYPE, accountFound.getId());
             try {
                 HttpResponse billingAddressResponse = addressAPIClient.updateAddress(accountFound.getBillingAddress(), billingAddressRequest);
-                AddressResponseDTO billingAddressData = mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
+                AddressResponseDTO billingAddressData = MappingUtil.mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
             } catch (Exception e) {
                 throw new RuntimeException("Error saving billing address." + e.getMessage());
             }
@@ -222,12 +234,13 @@ public class AccountServiceImpl implements AccountService {
         // Update Document
         if (accountInformation.getUploadAgreement() != null) {
             DocumentRequestDTO documentRequestDTO = new DocumentRequestDTO();
-            documentRequestDTO.setType("agreement");
-            documentRequestDTO.setTitle(accountInformation.getUploadAgreement().getOriginalFilename());
+            documentRequestDTO.setEntityType(ACCOUNT_TYPE);
             documentRequestDTO.setFile(accountInformation.getUploadAgreement());
             documentRequestDTO.setEntityId(accountFound.getId());
             HttpResponse documentResponse = documentAPIClient.updateDocument(documentRequestDTO);
-            DocumentResponseDTO documentData = mapClientBodyToClass(documentResponse.getData(), DocumentResponseDTO.class);
+            DocumentResponseDTO documentData = MappingUtil.mapClientBodyToClass(documentResponse.getData(), DocumentResponseDTO.class);
+        } else {
+            HttpResponse documentResponse = documentAPIClient.getDocumentByEntityTypeAndId("account", accountFound.getId());
         }
 
         AccountEntity accountUpdated = accountRepository.save(accountFound);
@@ -236,7 +249,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
-     * This method is used to delete an account
+     * This method is used to soft delete an account by Id
      * @param id
      */
     @Override
@@ -269,16 +282,55 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
-     * This method is used to convert Object to Class
-     * Use to convert API client Httpresponse back to DTO class
-     * @param body
-     * @param mappedDTO <T>
-     * @return T
+     * This method is used to set the account commercial
+     * @param accountId
+     * @param commercialRequest
+     * @return
      */
-    private <T> T mapClientBodyToClass(Object body, Class<T> mappedDTO) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        return objectMapper.convertValue(body, mappedDTO);
+    @Override
+    public CommercialResponseDTO setAccountCommercial(int accountId, CommercialRequestDTO commercialRequest) {
+        AccountEntity accountEntity = accountRepository.findByIdAndDeleted(accountId, false).orElseThrow(
+                () -> new EntityNotFoundException("Account with %s not found".formatted(accountId))
+        );
+
+        accountEntity.setMarkup(commercialRequest.getMarkUp());
+        accountEntity.setMsp(commercialRequest.getMsp());
+        accountEntity.setStatus(ACTIVE_STATUS);
+        AccountEntity accountUpdated = accountRepository.save(accountEntity);
+
+        return accountEntityToCommercialResponse(accountUpdated);
+    }
+
+    /**
+     * This method is used to get the account commercial
+     * @param accountId
+     * @return
+     */
+    @Override
+    public CommercialResponseDTO getAccountCommercialById(int accountId) {
+        AccountEntity accountEntity = accountRepository.findByIdAndDeleted(accountId, false).orElseThrow(
+                () -> new EntityNotFoundException("Account commericial Id %s not found".formatted(accountId))
+        );
+        return accountEntityToCommercialResponse(accountEntity);
+    }
+
+    /**
+     * Internal method to convert AccountEntity to AccountNameReponseDTO
+     * @param accountEntity
+     * @return
+     */
+    private AccountNameReponseDTO accountEntityToAccountNameResponseDTO(AccountEntity accountEntity) {
+        AccountNameReponseDTO accountNameReponseDTO = new AccountNameReponseDTO();
+        accountNameReponseDTO.setId(accountEntity.getId());
+        accountNameReponseDTO.setName(accountEntity.getName());
+        return accountNameReponseDTO;
+    }
+
+    private CommercialResponseDTO accountEntityToCommercialResponse(AccountEntity accountEntity){
+        CommercialResponseDTO commercialResponseDTO = new CommercialResponseDTO();
+        commercialResponseDTO.setMarkUp(accountEntity.getMarkup());
+        commercialResponseDTO.setMsp(accountEntity.getMsp());
+        return commercialResponseDTO;
     }
 
     /**
@@ -288,6 +340,7 @@ public class AccountServiceImpl implements AccountService {
      */
     private void accountInformationDTOToAccountEntity(AccountInformationDTO accountInformationDTO, AccountEntity accountEntity) {
         accountEntity.setName(accountInformationDTO.getAccountName());
+        accountEntity.setSalesName(accountInformationDTO.getSalesName());
         accountEntity.setStatus(accountInformationDTO.getAccountStatus());
         accountEntity.setRating(accountInformationDTO.getAccountRating());
         accountEntity.setIndustry(accountInformationDTO.getAccountIndustry());
@@ -295,7 +348,7 @@ public class AccountServiceImpl implements AccountService {
         accountEntity.setNoOfEmployees(accountInformationDTO.getNoOfEmployees());
         accountEntity.setRevenueAmt(accountInformationDTO.getRevenueAmt());
         accountEntity.setRevenueCur(accountInformationDTO.getRevenueCur());
-        if (accountInformationDTO.getParentCompany() != null) {
+        if (accountInformationDTO.getParentCompany() != 0) {
             AccountEntity parentAccount = accountRepository.findById(accountInformationDTO.getParentCompany()).orElseThrow(
                     () -> new EntityNotFoundException("Parent company with %s not found".formatted(accountInformationDTO.getParentCompany())));
             accountEntity.setParentCompany(parentAccount);
@@ -314,7 +367,7 @@ public class AccountServiceImpl implements AccountService {
      * @param accountEntity
      */
     private void leadInformationDTOToAccountEntity(LeadInformationDTO leadInformationDTO, AccountEntity accountEntity) {
-        accountEntity.setSalesName(leadInformationDTO.getSalesName());
+        accountEntity.setLeadSalesName(leadInformationDTO.getSalesName());
         accountEntity.setLeadSource(leadInformationDTO.getLeadSource());
         accountEntity.setAccountName(leadInformationDTO.getAccountName());
     }
@@ -349,6 +402,7 @@ public class AccountServiceImpl implements AccountService {
     private AccountInformationResponseDTO accountEntityToAccountInformationDTO(AccountEntity accountEntity) {
         AccountInformationResponseDTO accountInformationDTO = new AccountInformationResponseDTO();
         accountInformationDTO.setAccountName(accountEntity.getName());
+        accountInformationDTO.setSalesName(accountEntity.getSalesName());
         accountInformationDTO.setAccountStatus(accountEntity.getStatus());
         accountInformationDTO.setAccountRating(accountEntity.getRating());
         accountInformationDTO.setAccountIndustry(accountEntity.getIndustry());
@@ -376,7 +430,7 @@ public class AccountServiceImpl implements AccountService {
      */
     private LeadInformationResponseDTO accountEntityToLeadInformationDTO(AccountEntity accountEntity) {
         LeadInformationResponseDTO leadInformationDTO = new LeadInformationResponseDTO();
-        leadInformationDTO.setSalesName(accountEntity.getSalesName());
+        leadInformationDTO.setSalesName(accountEntity.getLeadSalesName());
         leadInformationDTO.setLeadSource(accountEntity.getLeadSource());
         leadInformationDTO.setAccountName(accountEntity.getAccountName());
         return leadInformationDTO;
@@ -391,10 +445,10 @@ public class AccountServiceImpl implements AccountService {
     private AddressInformationResponseDTO accountEntityToAddressInformationDTO(AccountEntity accountEntity) {
         //Address Information
         AddressInformationResponseDTO addressInformation = new AddressInformationResponseDTO();
-        AddressResponseDTO mailingAddressData = mapClientBodyToClass(addressAPIClient.getAddressById(accountEntity.getAddress()).getData(), AddressResponseDTO.class);
+        AddressResponseDTO mailingAddressData = MappingUtil.mapClientBodyToClass(addressAPIClient.getAddressById(accountEntity.getAddress()).getData(), AddressResponseDTO.class);
         addressInformation.setAddress(mailingAddressData);
         if (accountEntity.getBillingAddress() != null) {
-            AddressResponseDTO billingAddressData = mapClientBodyToClass(addressAPIClient.getAddressById(accountEntity.getBillingAddress()).getData(), AddressResponseDTO.class);
+            AddressResponseDTO billingAddressData = MappingUtil.mapClientBodyToClass(addressAPIClient.getAddressById(accountEntity.getBillingAddress()).getData(), AddressResponseDTO.class);
             addressInformation.setBillingAddress(billingAddressData);
         }
         return addressInformation;

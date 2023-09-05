@@ -12,9 +12,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DocumentResponseDTO {
-    private int id;
+    private Integer id;
     private String type;
     private String title;
+    private String documentName;
     private String description;
-    private int entityId;
+    private Integer entityId;
+    private String entityType;
 }
