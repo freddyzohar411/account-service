@@ -71,6 +71,6 @@ public class AccountInformationDTO {
 
 //    @NotNull(message = "File cannot be null")
     @ValidPdfFile(message = "File must be a PDF file")
-    @FileSize(maxSize = 1, message = "File size must be less than 1MB")
+    @FileSize(maxSize = 2, message = "File size must be less than 1MB")
     private MultipartFile uploadAgreement;
 }

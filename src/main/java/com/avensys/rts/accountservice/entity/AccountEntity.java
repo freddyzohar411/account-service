@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 /***
  *
@@ -99,5 +103,25 @@ public class AccountEntity {
 
     @Column (name = "markup")
     private Double markup;
+
+    @Column (name = "is_draft")
+    private boolean isDraft = true;
+
+    @Column (name = "account_number", length = 10)
+    private String accountNumber;
+
+    @Column (name = "created_by")
+    private Integer createdBy;
+
+    @CreationTimestamp
+    @Column (name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column (name = "updated_by")
+    private Integer updatedBy;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
 }

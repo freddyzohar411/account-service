@@ -2,6 +2,7 @@ package com.avensys.rts.accountservice.payloadresponse;
 
 import com.avensys.rts.accountservice.annotation.FileSize;
 import com.avensys.rts.accountservice.annotation.ValidPdfFile;
+import com.avensys.rts.accountservice.entity.AccountEntity;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -70,5 +71,7 @@ public class AccountInformationResponseDTO {
 
     @NotNull(message = "MSA cannot be empty")
     private int msa;
+
+    private AccountEntity parentCompanyEntity;
 
 }

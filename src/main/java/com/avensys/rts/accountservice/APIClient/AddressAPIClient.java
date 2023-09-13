@@ -1,6 +1,7 @@
 package com.avensys.rts.accountservice.APIClient;
 
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
+import com.avensys.rts.accountservice.interceptor.JwtTokenInterceptor;
 import com.avensys.rts.accountservice.payloadrequest.AddressRequestDTO;
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  * author Koh He Xiang
  * This class is an interface to interact with address microservice
  */
-@FeignClient(name = "address-service", url = "http://localhost:8300")
+@FeignClient(name = "address-service", url = "http://localhost:8300", configuration = JwtTokenInterceptor.class)
 public interface AddressAPIClient {
     @PostMapping("/addresses")
     HttpResponse createAddress(@Valid @RequestBody AddressRequestDTO addressRequest);

@@ -2,29 +2,36 @@ package com.avensys.rts.accountservice.service;
 
 import com.avensys.rts.accountservice.APIClient.AddressAPIClient;
 import com.avensys.rts.accountservice.APIClient.DocumentAPIClient;
-import com.avensys.rts.accountservice.APIClient.IndustryAPIClient;
+import com.avensys.rts.accountservice.APIClient.UserAPIClient;
 import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
 import com.avensys.rts.accountservice.entity.AccountEntity;
-import com.avensys.rts.accountservice.exception.DuplicateResourceException;
 import com.avensys.rts.accountservice.exception.RequiredDocumentMissingException;
 import com.avensys.rts.accountservice.payloadrequest.*;
 import com.avensys.rts.accountservice.payloadresponse.*;
 import com.avensys.rts.accountservice.repository.AccountRepository;
+import com.avensys.rts.accountservice.util.JwtUtil;
 import com.avensys.rts.accountservice.util.MappingUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.sun.jdi.request.DuplicateRequestException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ValidationException;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 
 /**
  * @author Koh He Xiang
@@ -35,7 +42,6 @@ public class AccountServiceImpl implements AccountService {
 
     private final String ACTIVE_STATUS = "active";
     private final String ACCOUNT_TYPE = "account";
-
     private final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     @Autowired
@@ -47,6 +53,9 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private DocumentAPIClient documentAPIClient;
 
+    @Autowired
+    private UserAPIClient userAPIClient;
+
     public AccountServiceImpl(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
     }
@@ -54,12 +63,17 @@ public class AccountServiceImpl implements AccountService {
     /**
      * This method is used to save account
      * Roll back occur if one of the save fails
+     *
      * @param accountRequestDTO
      * @return
      */
     @Override
     @Transactional
     public AccountResponseDTO createAccount(AccountRequestDTO accountRequestDTO) {
+
+        // Test getting information from JWT
+        System.out.println("Email: " + JwtUtil.getEmailFromContext());
+        System.out.println("Roles: " + JwtUtil.getRolesFromContext());
 
         // Logic to save account and relevant tables
         AccountEntity accountEntity = new AccountEntity();
@@ -75,6 +89,15 @@ public class AccountServiceImpl implements AccountService {
 
         // Set account remarks
         accountEntity.setRemarks(accountRequestDTO.getAccountRemarks());
+
+        // Set an account number
+        accountEntity.setAccountNumber("A" + RandomStringUtils.randomNumeric(7));
+
+        // Set created by User foreign key
+        String email = JwtUtil.getEmailFromContext();
+        HttpResponse userResponse = userAPIClient.getUserByEmail(email);
+        UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
+        accountEntity.setCreatedBy(userData.getId());
 
         // Save account and get account id
         AccountEntity savedAccount = accountRepository.save(accountEntity);
@@ -134,6 +157,7 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to get all accounts
+     *
      * @return List<AccountResponseDTO>
      */
     @Override
@@ -144,16 +168,18 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to get all accounts and map it to account name DTO
+     *
      * @return List<AccountNameReponseDTO>
      */
     @Override
     public List<AccountNameReponseDTO> getAllAccountsName() {
-        List<AccountEntity> accountEntities = accountRepository.findAllAndDeleted(false);
+        List<AccountEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false);
         return accountEntities.stream().map(this::accountEntityToAccountNameResponseDTO).toList();
     }
 
     /**
      * This method is used to get all accounts
+     *
      * @return List<AccountEntity>
      */
     @Override
@@ -163,6 +189,7 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to get account by id
+     *
      * @param accountId
      * @return AccountResponseDTO
      */
@@ -176,6 +203,7 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to update an account
+     *
      * @param accountRequestDTO
      * @return AccountResponseDTO
      */
@@ -203,7 +231,7 @@ public class AccountServiceImpl implements AccountService {
         // Update Mailing address and Billing address (if same as mailing address)
         AddressRequestDTO mailingAddressRequest = accountRequestToAddressRequest(addressInformation.getAddress(), 0, MessageConstants.ACCOUNT_TYPE, accountFound.getId());
         try {
-            HttpResponse mailAddressResponse = addressAPIClient.updateAddress(accountFound.getAddress(),mailingAddressRequest);
+            HttpResponse mailAddressResponse = addressAPIClient.updateAddress(accountFound.getAddress(), mailingAddressRequest);
             AddressResponseDTO mailAddressData = MappingUtil.mapClientBodyToClass(mailAddressResponse.getData(), AddressResponseDTO.class);
         } catch (Exception e) {
             throw new RuntimeException("Error saving address." + e.getMessage());
@@ -213,7 +241,7 @@ public class AccountServiceImpl implements AccountService {
         if (addressInformation.getIsSameAsBillingAddress()) {
             AddressRequestDTO billingAddressRequest = accountRequestToAddressRequest(addressInformation.getAddress(), 1, MessageConstants.ACCOUNT_TYPE, accountFound.getId());
             try {
-                HttpResponse billingAddressResponse = addressAPIClient.updateAddress(accountFound.getBillingAddress(),billingAddressRequest);
+                HttpResponse billingAddressResponse = addressAPIClient.updateAddress(accountFound.getBillingAddress(), billingAddressRequest);
                 AddressResponseDTO billingAddressData = MappingUtil.mapClientBodyToClass(billingAddressResponse.getData(), AddressResponseDTO.class);
             } catch (Exception e) {
                 throw new RuntimeException("Error saving billing address." + e.getMessage());
@@ -243,6 +271,10 @@ public class AccountServiceImpl implements AccountService {
             HttpResponse documentResponse = documentAPIClient.getDocumentByEntityTypeAndId("account", accountFound.getId());
         }
 
+        // Update account updated by
+        accountFound.setUpdatedBy(getUserId());
+
+        // Save updated account
         AccountEntity accountUpdated = accountRepository.save(accountFound);
 
         return accountEntityToAccountResponseDTO(accountUpdated);
@@ -250,6 +282,7 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to soft delete an account by Id
+     *
      * @param id
      */
     @Override
@@ -283,6 +316,7 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to set the account commercial
+     *
      * @param accountId
      * @param commercialRequest
      * @return
@@ -295,7 +329,8 @@ public class AccountServiceImpl implements AccountService {
 
         accountEntity.setMarkup(commercialRequest.getMarkUp());
         accountEntity.setMsp(commercialRequest.getMsp());
-        accountEntity.setStatus(ACTIVE_STATUS);
+        accountEntity.setDraft(false);
+        accountEntity.setUpdatedBy(getUserId());
         AccountEntity accountUpdated = accountRepository.save(accountEntity);
 
         return accountEntityToCommercialResponse(accountUpdated);
@@ -303,6 +338,7 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to get the account commercial
+     *
      * @param accountId
      * @return
      */
@@ -315,7 +351,145 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
+     * This method is used to get the account if draft
+     *
+     * @return
+     */
+    @Override
+    public AccountResponseDTO getAccountIfDraft() {
+        // Get User id
+        Optional<AccountEntity> accountFound = accountRepository.findByUserAndDraftAndDeleted(getUserId(), true, false);
+        return accountFound.map(this::accountEntityToAccountResponseDTO).orElse(null);
+    }
+
+    /**
+     * This method is used to get the accounts by pagination and Sort
+     * @param page
+     * @param size
+     * @param sortBy
+     * @param sortDir
+     * @return AccountListingResponseDTO
+     */
+    @Override
+    public AccountListingResponseDTO getAllAccountsByPaginationAndSort(Integer page, Integer size, String sortBy, String sortDir) {
+        System.out.println("Sorting");
+        Sort sort = null;
+        if (sortBy != null) {
+            // Get direction based on sort direction
+            Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+            if (sortDir != null) {
+                direction = sortDir.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            }
+            sort = Sort.by(direction, sortBy);
+        } else {
+            sort = Sort.by(Sort.Direction.DESC, "updatedAt");
+        }
+
+        Pageable pageable = null;
+        if (page == null && size == null) {
+            pageable = PageRequest.of(0, Integer.MAX_VALUE, sort);
+        } else {
+            pageable = PageRequest.of(page, size, sort);
+        }
+        Page<AccountEntity> accountsPage = accountRepository.findAllByPaginationAndSort(getUserId(), false, false, pageable);
+
+        return accountPageToAccountListingDTO(accountsPage);
+    }
+
+    /**
+     * This method is used to get the accounts by pagination and Sort and Search
+     * @param page
+     * @param size
+     * @param sortBy
+     * @param sortDir
+     * @param searchTerm
+     * @return AccountListingResponseDTO
+     */
+    @Override
+    public AccountListingResponseDTO getAllAccountsByPaginationAndSortAndSearch(Integer page, Integer size, String sortBy, String sortDir, String searchTerm) {
+        System.out.println("Sorting With Search");
+        Sort sort = null;
+        if (sortBy != null) {
+            // Get direction based on sort direction
+            Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+            if (sortDir != null) {
+                direction = sortDir.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            }
+            sort = Sort.by(direction, sortBy);
+        } else {
+            sort = Sort.by(Sort.Direction.DESC, "updatedAt");
+        }
+
+        Pageable pageable = null;
+        if (page == null && size == null) {
+            pageable = PageRequest.of(0, Integer.MAX_VALUE, sort);
+        } else {
+            pageable = PageRequest.of(page, size, sort);
+        }
+
+        // Dynamic search based on custom view (future feature)
+        List<String> customView = List.of("name", "salesName", "accountSource", "accountNumber", "status", "parentCompanyName");
+        Specification<AccountEntity> specification = (root, query, criteriaBuilder) -> {
+            // Old and possible
+//            Predicate[] searchPredicates = customView.stream()
+//                    .map(field -> criteriaBuilder.like(root.get(field), "%" + searchTerm + "%"))
+//                    .toArray(Predicate[]::new);
+//
+//            Predicate searchOrPredicates = criteriaBuilder.or(searchPredicates);
+//            List<Predicate> predicates = new ArrayList<>();
+//
+//            Predicate isDraftPredicate = criteriaBuilder.equal(root.get("isDraft"), false);
+//            Predicate isDeletedPredicate = criteriaBuilder.equal(root.get("isDeleted"), false);
+//            // get only for user id
+//            Predicate createdByPredicate = criteriaBuilder.equal(root.get("createdBy"), getUserId());
+//
+//            return criteriaBuilder.and(searchOrPredicates, criteriaBuilder.and(isDraftPredicate, isDeletedPredicate, createdByPredicate));
+
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Custom fields you want to search in
+            for (String field : customView) {
+                if ("parentCompanyName".equals(field)) {
+                    Join<AccountEntity, AccountEntity> parentJoin = root.join("parentCompany", JoinType.LEFT);
+                    predicates.add(criteriaBuilder.like(criteriaBuilder.lower(parentJoin.get("name")), "%" + searchTerm.toLowerCase() + "%"));
+                } else {
+                    predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get(field)), "%" + searchTerm.toLowerCase() + "%"));
+                }
+            }
+            Predicate searchOrPredicates = criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+
+            Predicate isDraftPredicate = criteriaBuilder.equal(root.get("isDraft"), false);
+            Predicate isDeletedPredicate = criteriaBuilder.equal(root.get("isDeleted"), false);
+            Predicate createdByPredicate = criteriaBuilder.equal(root.get("createdBy"), getUserId());
+
+            return criteriaBuilder.and(searchOrPredicates, isDraftPredicate, isDeletedPredicate, createdByPredicate);
+        };
+
+        Page<AccountEntity> accountsPage = accountRepository.findAll(specification, pageable);
+
+        return accountPageToAccountListingDTO(accountsPage);
+    }
+
+    /**
+     * This method is used to get all accounts by user id
+     *
+     * @param accountsPage
+     * @return
+     */
+    private AccountListingResponseDTO accountPageToAccountListingDTO(Page<AccountEntity> accountsPage) {
+        List<AccountUserResponseDTO> accountUserResponseList = accountsPage.getContent().stream().map(this::accountEntityToAccountUserResponseDTO).toList();
+        AccountListingResponseDTO accountListingResponseDTO = new AccountListingResponseDTO();
+        accountListingResponseDTO.setAccounts(accountUserResponseList);
+        accountListingResponseDTO.setPage(accountsPage.getNumber());
+        accountListingResponseDTO.setPageSize(accountsPage.getSize());
+        accountListingResponseDTO.setTotalElements(accountsPage.getTotalElements());
+        accountListingResponseDTO.setTotalPages(accountsPage.getTotalPages());
+        return accountListingResponseDTO;
+    }
+
+    /**
      * Internal method to convert AccountEntity to AccountNameReponseDTO
+     *
      * @param accountEntity
      * @return
      */
@@ -326,7 +500,7 @@ public class AccountServiceImpl implements AccountService {
         return accountNameReponseDTO;
     }
 
-    private CommercialResponseDTO accountEntityToCommercialResponse(AccountEntity accountEntity){
+    private CommercialResponseDTO accountEntityToCommercialResponse(AccountEntity accountEntity) {
         CommercialResponseDTO commercialResponseDTO = new CommercialResponseDTO();
         commercialResponseDTO.setMarkUp(accountEntity.getMarkup());
         commercialResponseDTO.setMsp(accountEntity.getMsp());
@@ -335,6 +509,7 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to convert AccountInformationDTO to AccountEntity
+     *
      * @param accountInformationDTO
      * @param accountEntity
      */
@@ -363,6 +538,7 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to convert LeadInformationDTO to AccountEntity
+     *
      * @param leadInformationDTO
      * @param accountEntity
      */
@@ -374,6 +550,7 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * This method is used to convert AddressDTO to AddressRequestDTO
+     *
      * @param addressRequest
      * @param type
      * @param EntityType
@@ -391,11 +568,12 @@ public class AccountServiceImpl implements AccountService {
         addressRequestDTO.setType((short) type);
         addressRequestDTO.setEntityId(entityId);
         addressRequestDTO.setEntityType(EntityType);
-        return  addressRequestDTO;
+        return addressRequestDTO;
     }
 
     /**
      * This method is used to convert AccountEntity to AccountInformationDTO
+     *
      * @param accountEntity
      * @return AccountInformationDTO
      */
@@ -410,6 +588,7 @@ public class AccountServiceImpl implements AccountService {
         accountInformationDTO.setNoOfEmployees(accountEntity.getNoOfEmployees());
         accountInformationDTO.setRevenueAmt(accountEntity.getRevenueAmt());
         accountInformationDTO.setRevenueCur(accountEntity.getRevenueCur());
+        accountInformationDTO.setParentCompanyEntity(accountEntity.getParentCompany());
         if (accountEntity.getParentCompany() != null) {
             accountInformationDTO.setParentCompany(accountEntity.getParentCompany().getId());
         }
@@ -479,6 +658,32 @@ public class AccountServiceImpl implements AccountService {
         accountResponseDTO.setLeadInformation(leadInformation);
         accountResponseDTO.setAddressInformation(addressInformation);
         accountResponseDTO.setAccountRemarks(accountRemarks);
+        accountResponseDTO.setAccountNumber(accountEntity.getAccountNumber());
         return accountResponseDTO;
+    }
+
+    /**
+     * Internal method to convert Account Entity to AccountUserResponseDTO
+     *
+     * @param accountEntity
+     * @return
+     */
+    private AccountUserResponseDTO accountEntityToAccountUserResponseDTO(AccountEntity accountEntity) {
+        AccountUserResponseDTO accountUserResponseDTO = new AccountUserResponseDTO();
+        AccountResponseDTO accountResponseDTO = accountEntityToAccountResponseDTO(accountEntity);
+        accountUserResponseDTO.setAccount(accountResponseDTO);
+
+        // Get user information from user id
+        HttpResponse userResponse = userAPIClient.getUserById(accountEntity.getCreatedBy());
+        UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
+        accountUserResponseDTO.setUser(userData);
+        return accountUserResponseDTO;
+    }
+
+    private Integer getUserId() {
+        String email = JwtUtil.getEmailFromContext();
+        HttpResponse userResponse = userAPIClient.getUserByEmail(email);
+        UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
+        return userData.getId();
     }
 }
