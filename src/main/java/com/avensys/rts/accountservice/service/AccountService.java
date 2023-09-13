@@ -3,9 +3,8 @@ package com.avensys.rts.accountservice.service;
 import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.avensys.rts.accountservice.payloadrequest.AccountRequestDTO;
 import com.avensys.rts.accountservice.payloadrequest.CommercialRequestDTO;
-import com.avensys.rts.accountservice.payloadresponse.AccountNameReponseDTO;
-import com.avensys.rts.accountservice.payloadresponse.AccountResponseDTO;
-import com.avensys.rts.accountservice.payloadresponse.CommercialResponseDTO;
+import com.avensys.rts.accountservice.payloadresponse.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -76,4 +75,30 @@ public interface AccountService {
      */
     CommercialResponseDTO getAccountCommercialById (int accountId);
 
+    /**
+     * This method is used to get the account if it is a draft
+     * @return
+     */
+    AccountResponseDTO getAccountIfDraft();
+
+    /**
+     * This method is used to get all accounts by pagination and sort
+     * @param page
+     * @param size
+     * @param sort
+     * @param sortDir
+     * @return
+     */
+    public AccountListingResponseDTO getAllAccountsByPaginationAndSort(Integer page, Integer size, String sort, String sortDir);
+
+    /**
+     * This method is used to get all accounts by pagination and sort and search
+     * @param page
+     * @param size
+     * @param sort
+     * @param sortDir
+     * @param search
+     * @return
+     */
+    public AccountListingResponseDTO getAllAccountsByPaginationAndSortAndSearch(Integer page, Integer size, String sort, String sortDir, String search);
 }

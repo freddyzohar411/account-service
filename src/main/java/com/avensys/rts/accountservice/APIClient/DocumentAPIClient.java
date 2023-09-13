@@ -1,6 +1,7 @@
 package com.avensys.rts.accountservice.APIClient;
 
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
+import com.avensys.rts.accountservice.interceptor.JwtTokenInterceptor;
 import com.avensys.rts.accountservice.payloadrequest.DocumentDeleteRequestDTO;
 import com.avensys.rts.accountservice.payloadrequest.DocumentRequestDTO;
 import jakarta.validation.Valid;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * This class is an interface to interact with document microservice
  */
 @Configuration
-@FeignClient(name = "document-service", url = "http://localhost:8500")
+@FeignClient(name = "document-service", url = "http://localhost:8500", configuration = JwtTokenInterceptor.class)
 public interface DocumentAPIClient {
     @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     HttpResponse createDocument(@ModelAttribute DocumentRequestDTO documentRequest);

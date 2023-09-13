@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountNameReponseDTO {
-    private Integer id;
-    private String name;
+public class AuthResponseDTO {
+    private boolean active;
 }

@@ -20,4 +20,5 @@ public class AccountResponseDTO {
     LeadInformationResponseDTO leadInformation;
     AddressInformationResponseDTO addressInformation;
     private String accountRemarks;
+    private String accountNumber;
 }

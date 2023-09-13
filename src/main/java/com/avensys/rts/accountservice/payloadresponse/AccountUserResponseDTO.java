@@ -5,9 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class AccountNameReponseDTO {
-    private Integer id;
-    private String name;
+@NoArgsConstructor
+public class AccountUserResponseDTO {
+    private AccountResponseDTO account;
+    private UserResponseDTO user;
 }

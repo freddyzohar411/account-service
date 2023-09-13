@@ -4,8 +4,10 @@ import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.avensys.rts.accountservice.payloadrequest.AccountRequestDTO;
 import com.avensys.rts.accountservice.payloadrequest.CommercialRequestDTO;
+import com.avensys.rts.accountservice.payloadresponse.AccountListingResponseDTO;
 import com.avensys.rts.accountservice.payloadresponse.AccountResponseDTO;
 import com.avensys.rts.accountservice.payloadresponse.CommercialResponseDTO;
+import com.avensys.rts.accountservice.service.AccountService;
 import com.avensys.rts.accountservice.service.AccountServiceImpl;
 import com.avensys.rts.accountservice.util.ResponseUtil;
 import jakarta.validation.Valid;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +44,7 @@ public class AccountController {
 
     /**
      * Create an account draft
+     *
      * @param accountRequest
      * @return
      */
@@ -53,6 +57,7 @@ public class AccountController {
 
     /**
      * Find an account by Id
+     *
      * @param accountId
      * @return
      */
@@ -63,20 +68,21 @@ public class AccountController {
         return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
-    /**
-     * Get all accounts
-     * @return List of accounts
-     */
-    @GetMapping("/accounts")
-    public ResponseEntity<Object> getAllAccounts() {
-        log.info("Get all accounts: Controller");
-        List<AccountResponseDTO> accounts = accountService.getAllAccounts();
-        Map<String, Object> accountsMap = Map.of("accounts", accounts);
-        return ResponseUtil.generateSuccessResponse(accountsMap, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
-    }
+//    /**
+//     * Get all accounts
+//     * @return List of accounts
+//     */
+//    @GetMapping("/accounts")
+//    public ResponseEntity<Object> getAllAccounts() {
+//        log.info("Get all accounts: Controller");
+//        List<AccountResponseDTO> accounts = accountService.getAllAccounts();
+//        Map<String, Object> accountsMap = Map.of("accounts", accounts);
+//        return ResponseUtil.generateSuccessResponse(accountsMap, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+//    }
 
     /**
      * Update an account
+     *
      * @param accountId
      * @param accountRequest
      */
@@ -89,6 +95,7 @@ public class AccountController {
 
     /**
      * Delete an account
+     *
      * @param accountId
      * @return
      */
@@ -101,6 +108,7 @@ public class AccountController {
 
     /**
      * Set account commercial
+     *
      * @param accountId
      * @param commercialRequestDTO
      * @return
@@ -114,6 +122,7 @@ public class AccountController {
 
     /**
      * Get account commercial
+     *
      * @param accountId
      * @return
      */
@@ -127,6 +136,7 @@ public class AccountController {
     /**
      * Get all accounts name
      * Used to populate parent company dropdown
+     *
      * @return List of account names
      */
     @GetMapping("/accounts/names")
@@ -135,4 +145,42 @@ public class AccountController {
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsName(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
+    /**
+     * Get draft account
+     *
+     * @return
+     */
+    @GetMapping("/accounts/draft")
+    public ResponseEntity<Object> getDraftAccount() {
+        log.info("Get draft account: Controller");
+        return ResponseUtil.generateSuccessResponse(accountService.getAccountIfDraft(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
+    /**
+     * Get all accounts
+     *
+     * @return List of accounts
+     */
+    @GetMapping("/accounts")
+    public ResponseEntity<Object> getAllAccounts(@RequestParam(required = false) Integer page,
+                                                 @RequestParam(required = false) Integer pageSize,
+                                                 @RequestParam(required = false) String sortBy,
+                                                 @RequestParam(required = false) String sortDirection,
+                                                 @RequestParam(required = false) String searchTerm
+    ) {
+        log.info("Get all accounts: Controller");
+        if (page == null && pageSize == null && sortBy == null && sortDirection == null) {
+            List<AccountResponseDTO> accounts = accountService.getAllAccounts();
+            return ResponseUtil.generateSuccessResponse(accounts, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        } else {
+            if (searchTerm == null) {
+                AccountListingResponseDTO accounts = accountService.getAllAccountsByPaginationAndSort(page, pageSize, sortBy, sortDirection);
+                return ResponseUtil.generateSuccessResponse(accounts, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+            } else {
+                AccountListingResponseDTO accounts = accountService.getAllAccountsByPaginationAndSortAndSearch(page, pageSize, sortBy, sortDirection, searchTerm);
+                return ResponseUtil.generateSuccessResponse(accounts, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+            }
+        }
+
+    }
 }
