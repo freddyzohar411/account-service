@@ -523,7 +523,7 @@ public class AccountServiceImpl implements AccountService {
         accountEntity.setNoOfEmployees(accountInformationDTO.getNoOfEmployees());
         accountEntity.setRevenueAmt(accountInformationDTO.getRevenueAmt());
         accountEntity.setRevenueCur(accountInformationDTO.getRevenueCur());
-        if (accountInformationDTO.getParentCompany() != 0) {
+        if (accountInformationDTO.getParentCompany() != null && accountInformationDTO.getParentCompany() > 0) {
             AccountEntity parentAccount = accountRepository.findById(accountInformationDTO.getParentCompany()).orElseThrow(
                     () -> new EntityNotFoundException("Parent company with %s not found".formatted(accountInformationDTO.getParentCompany())));
             accountEntity.setParentCompany(parentAccount);
