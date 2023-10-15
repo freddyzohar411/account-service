@@ -1,6 +1,7 @@
 package com.avensys.rts.accountservice.payloadnewresponse;
 
 import com.avensys.rts.accountservice.entity.AccountNewEntity;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,8 +12,8 @@ import lombok.NoArgsConstructor;
 public class FormSubmissionsResponseDTO {
     private Integer id;
     private String formId;
-
-    private String submissionData;
+    private Integer userId;
+    private JsonNode submissionData;
     private Integer entityId;
     private String entityType;
 }

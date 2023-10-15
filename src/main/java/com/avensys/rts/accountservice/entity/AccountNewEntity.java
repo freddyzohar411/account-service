@@ -1,11 +1,14 @@
 package com.avensys.rts.accountservice.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -68,4 +71,12 @@ public class AccountNewEntity {
 
     @Column(name = "commercial_form_submission_id")
     private Integer commercialFormSubmissionId;
+
+//    @JdbcTypeCode(SqlTypes.JSON)
+//    @Column(name="account_submission_data", columnDefinition = "jsonb")
+//    private JsonNode accountSubmissionData;
+//
+//    @JdbcTypeCode(SqlTypes.JSON)
+//    @Column(name="commercial_submission_data", columnDefinition = "jsonb")
+//    private JsonNode commercialSubmissionData;
 }
