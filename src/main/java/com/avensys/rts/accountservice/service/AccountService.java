@@ -101,4 +101,14 @@ public interface AccountService {
      * @return
      */
     public AccountListingResponseDTO getAllAccountsByPaginationAndSortAndSearch(Integer page, Integer size, String sort, String sortDir, String search);
+
+
+    /**
+     * This method is used to get all accounts by pagination and sort and search
+     * @param accountId
+     * @return
+     */
+    public AccountInformationResponseDTO getAccountInformationById(int accountId);
+
+
 }

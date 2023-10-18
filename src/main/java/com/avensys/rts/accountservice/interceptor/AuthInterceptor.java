@@ -48,19 +48,6 @@ public class AuthInterceptor implements HandlerInterceptor {
         // Validate JWT with the public key from keycloak
         jwtUtil.validateToken(token);
 
-        // validate with endpoint
-//        RestTemplate restTemplate = new RestTemplate();
-//        String url = "http://localhost:8090/api/user/validate?token=" + token;
-//        System.out.println("AuthInterceptor URL: " + url);
-//        AuthResponseDTO authResponse = restTemplate.getForObject(url, AuthResponseDTO.class);
-//        System.out.println("AuthInterceptor Valid: " + authResponse.isActive());
-//
-//        if (!authResponse.isActive()) {
-//            throw new RuntimeException("Invalid Token");
-//        }
-
-        // Get claims from token
-
         // Extract all claims from the signed token
         Claims claims = jwtUtil.extractAllClaims(token);
 

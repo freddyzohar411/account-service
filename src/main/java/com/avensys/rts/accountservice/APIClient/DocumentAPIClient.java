@@ -33,4 +33,6 @@ public interface DocumentAPIClient {
     @GetMapping("/documents")
     HttpResponse getDocumentByEntityTypeAndId(@RequestParam String entityType, @RequestParam int entityId);
 
+    @DeleteMapping("/documents/entity/{entityType}/{entityId}")
+    HttpResponse deleteDocumentsByEntityTypeAndEntityId(@PathVariable String entityType, @PathVariable Integer entityId);
 }

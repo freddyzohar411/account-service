@@ -4,6 +4,7 @@ import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.avensys.rts.accountservice.payloadrequest.AccountRequestDTO;
 import com.avensys.rts.accountservice.payloadrequest.CommercialRequestDTO;
+import com.avensys.rts.accountservice.payloadresponse.AccountInformationResponseDTO;
 import com.avensys.rts.accountservice.payloadresponse.AccountListingResponseDTO;
 import com.avensys.rts.accountservice.payloadresponse.AccountResponseDTO;
 import com.avensys.rts.accountservice.payloadresponse.CommercialResponseDTO;
@@ -28,7 +29,7 @@ import java.util.Map;
  * This class is used to handle the API calls for the account service.
  */
 
-@RestController
+//@RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AccountController {
 
@@ -158,7 +159,6 @@ public class AccountController {
 
     /**
      * Get all accounts
-     *
      * @return List of accounts
      */
     @GetMapping("/accounts")
@@ -181,6 +181,13 @@ public class AccountController {
                 return ResponseUtil.generateSuccessResponse(accounts, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
             }
         }
-
     }
+
+    @GetMapping("/accounts/information/{accountId}")
+    public ResponseEntity<Object> getAccountInformationById(@PathVariable int accountId) {
+        log.info("Get account information by Id: Controller");
+        AccountInformationResponseDTO accountInformationResponse = accountService.getAccountInformationById(accountId);
+        return ResponseUtil.generateSuccessResponse(accountInformationResponse, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
 }

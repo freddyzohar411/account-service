@@ -471,8 +471,20 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
+     * This method is used to get account information only by id
+     * @param accountId
+     * @return
+     */
+    @Override
+    public AccountInformationResponseDTO getAccountInformationById(int accountId) {
+        AccountEntity accountEntity = accountRepository.findByIdAndDeleted(accountId, false).orElseThrow(
+                () -> new EntityNotFoundException("Account with %s not found".formatted(accountId))
+        );
+        return accountEntityToAccountInformationDTO(accountEntity);
+    }
+
+    /**
      * This method is used to get all accounts by user id
-     *
      * @param accountsPage
      * @return
      */
