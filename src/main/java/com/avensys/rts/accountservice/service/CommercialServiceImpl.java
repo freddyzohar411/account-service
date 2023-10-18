@@ -47,6 +47,9 @@ public class CommercialServiceImpl implements CommercialService{
         HttpResponse formSubmissionResponse = formSubmissionAPIClient.addFormSubmission(formSubmissionsRequestDTO);
         FormSubmissionsResponseDTO formSubmissionData = MappingUtil.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
 
+        // Added - create commercial form Data
+        accountEntityFound.setCommercialSubmissionData(formSubmissionData.getSubmissionData());
+
         accountEntityFound.setCommercialFormSubmissionId(formSubmissionData.getId());
         accountEntityFound.setDraft(false);
         return commercialEntityToCommercialNewResponseDTO(accountRepository.save(accountEntityFound));
@@ -74,6 +77,9 @@ public class CommercialServiceImpl implements CommercialService{
         HttpResponse formSubmissionResponse = formSubmissionAPIClient.updateFormSubmission(accountEntityFound.getCommercialFormSubmissionId(), formSubmissionsRequestDTO);
         FormSubmissionsResponseDTO formSubmissionData = MappingUtil.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
 
+        // Added - create commercial form Data
+        accountEntityFound.setCommercialSubmissionData(formSubmissionData.getSubmissionData());
+
         accountEntityFound.setCommercialFormSubmissionId(formSubmissionData.getId());
         accountEntityFound.setDraft(false);
         return commercialEntityToCommercialNewResponseDTO(accountRepository.save(accountEntityFound));
@@ -90,6 +96,9 @@ public class CommercialServiceImpl implements CommercialService{
         HttpResponse formSubmissionResponse = formSubmissionAPIClient.getFormSubmission(accountEntity.getCommercialFormSubmissionId());
         FormSubmissionsResponseDTO formSubmissionData = MappingUtil.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
         commercialNewResponseDTO.setSubmissionData(MappingUtil.convertJsonNodeToJSONString(formSubmissionData.getSubmissionData()));
+
+        // Added - set commercial form data to the response
+        commercialNewResponseDTO.setCommercialSubmissionData(formSubmissionData.getSubmissionData());
         return commercialNewResponseDTO;
     }
 

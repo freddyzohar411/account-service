@@ -14,4 +14,5 @@ public class CommercialNewResponseDTO {
     private String markUp;
     private String submissionData;
     private Integer formId;
+    private JsonNode commercialSubmissionData;
 }

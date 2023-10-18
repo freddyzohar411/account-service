@@ -1,38 +1,30 @@
 package com.avensys.rts.accountservice.service;
 
-import com.avensys.rts.accountservice.APIClient.AddressAPIClient;
-import com.avensys.rts.accountservice.APIClient.DocumentAPIClient;
-import com.avensys.rts.accountservice.APIClient.FormSubmissionAPIClient;
-import com.avensys.rts.accountservice.APIClient.UserAPIClient;
+import com.avensys.rts.accountservice.APIClient.*;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
-import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.avensys.rts.accountservice.entity.AccountNewEntity;
 import com.avensys.rts.accountservice.exception.RequiredDocumentMissingException;
+import com.avensys.rts.accountservice.model.FieldInformation;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountNewRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.CommercialNewRequest;
 import com.avensys.rts.accountservice.payloadnewrequest.FormSubmissionsRequestDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.CommercialNewResponseDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.FormSubmissionsResponseDTO;
-import com.avensys.rts.accountservice.payloadrequest.AccountRequestDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.*;
 import com.avensys.rts.accountservice.payloadrequest.DocumentRequestDTO;
-import com.avensys.rts.accountservice.payloadresponse.AccountNameReponseDTO;
-import com.avensys.rts.accountservice.payloadresponse.AccountResponseDTO;
-import com.avensys.rts.accountservice.payloadresponse.DocumentResponseDTO;
-import com.avensys.rts.accountservice.payloadresponse.UserResponseDTO;
+import com.avensys.rts.accountservice.payloadresponse.*;
 import com.avensys.rts.accountservice.repository.AccountNewRepository;
-import com.avensys.rts.accountservice.repository.AccountRepository;
 import com.avensys.rts.accountservice.util.JwtUtil;
 import com.avensys.rts.accountservice.util.MappingUtil;
+import com.avensys.rts.accountservice.util.StringUtil;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class AccountNewServiceImpl implements AccountNewService {
@@ -49,6 +41,12 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     @Autowired
     private DocumentAPIClient documentAPIClient;
+
+    @Autowired
+    private ContactAPIClient contactAPIClient;
+
+    @Autowired
+    private InstructionAPIClient instructionAPIClient;
 
     @Autowired
     private UserAPIClient userAPIClient;
@@ -72,7 +70,7 @@ public class AccountNewServiceImpl implements AccountNewService {
      */
     @Override
     @Transactional
-    public AccountResponseDTO createAccount(AccountNewRequestDTO accountRequest) {
+    public AccountNewResponseDTO createAccount(AccountNewRequestDTO accountRequest) {
         System.out.println("Account create: Service");
         System.out.println(accountRequest);
         AccountNewEntity savedAccountEntity = accountRequestDTOToAccountEntity(accountRequest);
@@ -98,9 +96,12 @@ public class AccountNewServiceImpl implements AccountNewService {
         HttpResponse formSubmissionResponse = formSubmissionAPIClient.addFormSubmission(formSubmissionsRequestDTO);
         FormSubmissionsResponseDTO formSubmissionData = MappingUtil.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
 
+        // Added - Save accountSubmissionData
+        savedAccountEntity.setAccountSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
+
         savedAccountEntity.setFormSubmissionId(formSubmissionData.getId());
         System.out.println("Form Submission Id: " + savedAccountEntity.getFormSubmissionId());
-        return null;
+        return accountEntityToAccountResponseDTO(savedAccountEntity);
     }
 
     /**
@@ -160,6 +161,9 @@ public class AccountNewServiceImpl implements AccountNewService {
             DocumentResponseDTO documentData = MappingUtil.mapClientBodyToClass(documentResponse.getData(), DocumentResponseDTO.class);
         }
 
+        // Added - Update accountSubmissionData
+        accountEntity.setAccountSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
+
         return accountEntityToAccountResponseDTO(accountEntity);
     }
 
@@ -168,6 +172,231 @@ public class AccountNewServiceImpl implements AccountNewService {
         List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false);
         return accountEntities.stream().map(this::accountNewEntityToAccountNameResponseDTO).toList();
     }
+
+    @Override
+    public List<Map<String, String>> getAllAccountsFields() {
+        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false);
+        if (accountEntities.isEmpty()) {
+            return null;
+        }
+
+        // Declare a new haspmap to store the label and value
+        Map<String, String> keyMap = new HashMap<>();
+
+        // Lets store normal column first
+        keyMap.put("Account Number", "account_number");
+        keyMap.put("Created At", "createdAt");
+        keyMap.put("Updated At", "updatedAt");
+        keyMap.put("Created By", "createdByName");
+        keyMap.put("Updated By", "updatedByName");
+        // Loop through the account submission data jsonNode
+        for (AccountNewEntity accountNewEntity : accountEntities) {
+            if (accountNewEntity.getAccountSubmissionData() != null) {
+                Iterator<String> accountFieldNames = accountNewEntity.getAccountSubmissionData().fieldNames();
+                while (accountFieldNames.hasNext()) {
+                    String fieldName = accountFieldNames.next();
+                    keyMap.put(StringUtil.convertCamelCaseToTitleCase2(fieldName), "accountSubmissionData." + fieldName);
+                }
+            }
+
+            if (accountNewEntity.getCommercialSubmissionData() != null) {
+                Iterator<String> commercialFieldNames = accountNewEntity.getCommercialSubmissionData().fieldNames();
+                while (commercialFieldNames.hasNext()) {
+                    String fieldName = commercialFieldNames.next();
+                    keyMap.put(StringUtil.convertCamelCaseToTitleCase2(fieldName), "commercialSubmissionData." + fieldName);
+                }
+            }
+        }
+
+        List<Map<String, String>> fieldOptions = new ArrayList<>();
+        // Loop Through map
+        for (Map.Entry<String, String> entry : keyMap.entrySet()) {
+            System.out.println("Key = " + entry.getKey() +
+                    ", Value = " + entry.getValue());
+            // Creat a list of map with label and value
+            Map<String, String> map = new HashMap<>();
+            map.put("label", entry.getKey());
+            map.put("value", entry.getValue());
+            if (entry.getValue().contains(".")) {
+                String[] split = entry.getValue().split("\\.");
+                map.put("sortValue", StringUtil.camelCaseToSnakeCase(split[0]) + "." + split[1]);
+            } else {
+                map.put("sortValue", StringUtil.camelCaseToSnakeCase(entry.getValue()));
+            }
+            fieldOptions.add(map);
+        }
+        return fieldOptions;
+    }
+
+    @Override
+    public Set<FieldInformation> getAllAccountsFieldsNew() {
+        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false);
+        if (accountEntities.isEmpty()) {
+            return null;
+        }
+
+        // Declare a new haspmap to store the label and value
+        Set<FieldInformation> fieldColumn = new HashSet<>();
+        fieldColumn.add(new FieldInformation("Account Number", "accountNumber", true, "account_number"));
+        fieldColumn.add(new FieldInformation("Created At", "createdAt", true, "created_at"));
+        fieldColumn.add(new FieldInformation("Updated At", "updatedAt", true, "updated_at"));
+        fieldColumn.add(new FieldInformation("Created By", "createdByName", false, null));
+
+        // Loop through the account submission data jsonNode
+        for (AccountNewEntity accountNewEntity : accountEntities) {
+            if (accountNewEntity.getAccountSubmissionData() != null) {
+                Iterator<String> accountFieldNames = accountNewEntity.getAccountSubmissionData().fieldNames();
+                while (accountFieldNames.hasNext()) {
+                    String fieldName = accountFieldNames.next();
+                    fieldColumn.add(new FieldInformation(StringUtil.convertCamelCaseToTitleCase2(fieldName), "accountSubmissionData." + fieldName, true, "account_submission_data." + fieldName));
+                }
+            }
+
+            if (accountNewEntity.getCommercialSubmissionData() != null) {
+                Iterator<String> commercialFieldNames = accountNewEntity.getCommercialSubmissionData().fieldNames();
+                while (commercialFieldNames.hasNext()) {
+                    String fieldName = commercialFieldNames.next();
+                    fieldColumn.add(new FieldInformation(StringUtil.convertCamelCaseToTitleCase2(fieldName), "commercialSubmissionData." + fieldName, true, "commercial_submission_data." + fieldName));
+                }
+            }
+        }
+        return fieldColumn;
+    }
+
+    @Override
+    public AccountListingNewResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy, String sortDirection) {
+        // Get sort direction
+        Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+        if (sortDirection != null && !sortDirection.isEmpty()) {
+            direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        }
+        if (sortBy == null || sortBy.isEmpty() || sortBy.equals("")) {
+            sortBy = "updated_at";
+        }
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<AccountNewEntity> accountEntitiesPage = null;
+        // Try with numeric first else try with string (jsonb)
+        try {
+            accountEntitiesPage = accountRepository.findAllByOrderByNumeric(
+                    getUserId(),
+                    false,
+                    false,
+                    pageRequest
+            );
+        } catch (Exception e) {
+            accountEntitiesPage = accountRepository.findAllByOrderByString(
+                    getUserId(),
+                    false,
+                    false,
+                    pageRequest
+            );
+        }
+
+        return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
+    }
+
+    @Override
+    public AccountListingNewResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String> searchFields) {
+        // Get sort direction
+        Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+        if (sortDirection != null) {
+            direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        }
+        if (sortBy == null) {
+            sortBy = "updated_at";
+        }
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<AccountNewEntity> accountEntitiesPage = null;
+        // Try with numeric first else try with string (jsonb)
+        try {
+            accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumeric(
+                    getUserId(),
+                    false,
+                    false,
+                    pageRequest,
+                    searchFields,
+                    searchTerm
+            );
+        } catch (Exception e) {
+            accountEntitiesPage = accountRepository.findAllByOrderByAndSearchString(
+                    getUserId(),
+                    false,
+                    false,
+                    pageRequest,
+                    searchFields,
+                    searchTerm
+            );
+        }
+        return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
+    }
+
+    @Override
+    @Transactional
+    public void deleteDraftAccount(Integer accountId) {
+        // Get account which is in draft state.
+        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDraft(accountId, true).orElseThrow(
+                () -> new RuntimeException("Account not found")
+        );
+
+        // Delete all contacts belong to this account
+        HttpResponse contactResponse = contactAPIClient.deleteContactsByEntityTypeAndEntityId("account_contact", accountId);
+        // Delete all Documents
+        HttpResponse documentResponse = documentAPIClient.deleteDocumentsByEntityTypeAndEntityId("account_document", accountId);
+        // Delete account client instructions
+        HttpResponse instructionResponse = instructionAPIClient.deleteInstructionByEntityId("account_instruction", accountId);
+        // Delete all client instruction documents
+        HttpResponse instructionDocumentResponse = documentAPIClient.deleteDocumentsByEntityTypeAndEntityId("account_instruction_document", accountId);
+
+        // Delete all the commercial form submission if it exist
+        if (accountEntityFound.getCommercialFormSubmissionId() != null) {
+            HttpResponse commercialFormSubmissionResponse = formSubmissionAPIClient.deleteFormSubmission(accountEntityFound.getCommercialFormSubmissionId());
+        }
+
+        // Delete all account form submission
+        if (accountEntityFound.getFormSubmissionId() != null) {
+            HttpResponse formSubmissionResponse = formSubmissionAPIClient.deleteFormSubmission(accountEntityFound.getFormSubmissionId());
+        }
+
+        // Delete account required document
+        HttpResponse requiredDocumentResponse = documentAPIClient.deleteDocumentsByEntityTypeAndEntityId("account_account", accountId);
+
+        // Check if there is parent company and delete it
+        accountEntityFound.setParentCompany(null);
+        accountRepository.delete(accountEntityFound);
+        System.out.println("Draft account deleted");
+    }
+
+    /**
+     * Page to account listing new response
+     */
+    private AccountListingNewResponseDTO pageAccountListingToAccountListingResponseDTO(Page<AccountNewEntity> accountNewEntitiesPage) {
+        AccountListingNewResponseDTO accountListingResponseDTO = new AccountListingNewResponseDTO();
+        accountListingResponseDTO.setTotalElements(accountNewEntitiesPage.getTotalElements());
+        accountListingResponseDTO.setTotalPages(accountNewEntitiesPage.getTotalPages());
+        accountListingResponseDTO.setPage(accountNewEntitiesPage.getNumber());
+        accountListingResponseDTO.setPageSize(accountNewEntitiesPage.getSize());
+        List<AccountNewListingDataDTO> accountNewListingDataDTOS = new ArrayList<>();
+        accountNewListingDataDTOS = accountNewEntitiesPage.getContent().stream().map(
+                accountNewEntity -> {
+                    AccountNewListingDataDTO accountNewListingDataDTO = new AccountNewListingDataDTO(accountNewEntity);
+                    // Get created by User data from user microservice
+                    HttpResponse createUserResponse = userAPIClient.getUserById(accountNewEntity.getCreatedBy());
+                    UserResponseDTO createUserData = MappingUtil.mapClientBodyToClass(createUserResponse.getData(), UserResponseDTO.class);
+                    accountNewListingDataDTO.setCreatedByName(createUserData.getFirstName() + " " + createUserData.getLastName());
+                    HttpResponse updateUserResponse = userAPIClient.getUserById(accountNewEntity.getUpdatedBy());
+                    UserResponseDTO updateUserData = MappingUtil.mapClientBodyToClass(updateUserResponse.getData(), UserResponseDTO.class);
+                    accountNewListingDataDTO.setUpdatedByName(updateUserData.getFirstName() + " " + updateUserData.getLastName());
+                    return accountNewListingDataDTO;
+                }
+        ).toList();
+
+        accountListingResponseDTO.setAccounts(accountNewListingDataDTOS);
+        return accountListingResponseDTO;
+    }
+
 
     /**
      * Internal method to convert AccountEntity to AccountNameReponseDTO
@@ -182,77 +411,7 @@ public class AccountNewServiceImpl implements AccountNewService {
         return accountNameReponseDTO;
     }
 
-//    @Override
-//    @Transactional
-//    public CommercialNewResponseDTO createCommercial(Integer id, CommercialNewRequest commercialNewRequest) {
-//        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(id, false)
-//                .orElseThrow(() -> new RuntimeException("Account not found"));
-//        accountEntityFound.setMarkUp(commercialNewRequest.getMarkUp());
-//        accountEntityFound.setMsp(commercialNewRequest.getMsp());
-//        accountEntityFound.setCommercialFormId(commercialNewRequest.getFormId());
-//
-//        // Save form data to form submission microservice
-//        FormSubmissionsRequestDTO formSubmissionsRequestDTO = commercialRequestToFormSubmissionRequestDTO(commercialNewRequest);
-//        HttpResponse formSubmissionResponse = formSubmissionAPIClient.addFormSubmission(formSubmissionsRequestDTO);
-//        FormSubmissionsResponseDTO formSubmissionData = MappingUtil.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
-//
-//        accountEntityFound.setCommercialFormSubmissionId(formSubmissionData.getId());
-//        accountEntityFound.setDraft(false);
-//        return commercialEntityToCommercialNewResponseDTO(accountRepository.save(accountEntityFound));
-//    }
-//
-//    @Override
-//    public CommercialNewResponseDTO getCommercial(Integer id) {
-//        Optional<AccountNewEntity> accountEntity = accountRepository.findByIdAndDeleted(id, false);
-//        if (accountEntity.isPresent()) {
-//            return commercialEntityToCommercialNewResponseDTO(accountEntity.get());
-//        }
-//        return null;
-//    }
-//
-//    @Override
-//    public CommercialNewResponseDTO updateCommercial(Integer id, CommercialNewRequest commercialNewRequest) {
-//        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(id, false)
-//                .orElseThrow(() -> new RuntimeException("Account not found"));
-//        accountEntityFound.setMarkUp(commercialNewRequest.getMarkUp());
-//        accountEntityFound.setMsp(commercialNewRequest.getMsp());
-//        accountEntityFound.setCommercialFormId(commercialNewRequest.getFormId());
-//
-//        // Update form data to form submission microservice
-//        FormSubmissionsRequestDTO formSubmissionsRequestDTO = commercialRequestToFormSubmissionRequestDTO(commercialNewRequest);
-//        HttpResponse formSubmissionResponse = formSubmissionAPIClient.updateFormSubmission(accountEntityFound.getCommercialFormSubmissionId(), formSubmissionsRequestDTO);
-//        FormSubmissionsResponseDTO formSubmissionData = MappingUtil.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
-//
-//        accountEntityFound.setCommercialFormSubmissionId(formSubmissionData.getId());
-//        accountEntityFound.setDraft(false);
-//        return commercialEntityToCommercialNewResponseDTO(accountRepository.save(accountEntityFound));
-//    }
-//
-//    private CommercialNewResponseDTO commercialEntityToCommercialNewResponseDTO(AccountNewEntity accountEntity) {
-//        CommercialNewResponseDTO commercialNewResponseDTO = new CommercialNewResponseDTO();
-//        commercialNewResponseDTO.setId(accountEntity.getId());
-//        commercialNewResponseDTO.setMsp(accountEntity.getMsp());
-//        commercialNewResponseDTO.setMarkUp(accountEntity.getMarkUp());
-//        commercialNewResponseDTO.setFormId(accountEntity.getCommercialFormId());
-//
-//        // Get form submission data
-//        HttpResponse formSubmissionResponse = formSubmissionAPIClient.getFormSubmission(accountEntity.getCommercialFormSubmissionId());
-//        FormSubmissionsResponseDTO formSubmissionData = MappingUtil.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
-//        commercialNewResponseDTO.setSubmissionData(MappingUtil.convertJsonNodeToJSONString(formSubmissionData.getSubmissionData()));
-//        return commercialNewResponseDTO;
-//    }
-//
-//    private FormSubmissionsRequestDTO commercialRequestToFormSubmissionRequestDTO(CommercialNewRequest commercialNewRequest) {
-//        FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
-//        formSubmissionsRequestDTO.setUserId(getUserId());
-//        formSubmissionsRequestDTO.setFormId(commercialNewRequest.getFormId());
-//        formSubmissionsRequestDTO.setSubmissionData(MappingUtil.convertJSONStringToJsonNode(commercialNewRequest.getFormData()));
-//        formSubmissionsRequestDTO.setEntityId(commercialNewRequest.getEntityId());
-//        formSubmissionsRequestDTO.setEntityType(commercialNewRequest.getEntityType());
-//        return formSubmissionsRequestDTO;
-//    }
-
-    private FormSubmissionsRequestDTO accountNewRequestDTOToFormSubmissionRequestDTO(AccountNewEntity accountNewEntity, AccountNewRequestDTO accountNewRequestDTO){
+    private FormSubmissionsRequestDTO accountNewRequestDTOToFormSubmissionRequestDTO(AccountNewEntity accountNewEntity, AccountNewRequestDTO accountNewRequestDTO) {
         FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
         formSubmissionsRequestDTO.setUserId(getUserId());
         formSubmissionsRequestDTO.setFormId(accountNewRequestDTO.getFormId());
@@ -288,6 +447,9 @@ public class AccountNewServiceImpl implements AccountNewService {
         HttpResponse formSubmissionResponse = formSubmissionAPIClient.getFormSubmission(accountEntity.getFormSubmissionId());
         FormSubmissionsResponseDTO formSubmissionData = MappingUtil.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
         accountResponseDTO.setSubmissionData(MappingUtil.convertJsonNodeToJSONString(formSubmissionData.getSubmissionData()));
+
+        // Added - Get accountSubmissionData and add to response
+        accountResponseDTO.setAccountSubmissionData(formSubmissionData.getSubmissionData());
 
         return accountResponseDTO;
     }

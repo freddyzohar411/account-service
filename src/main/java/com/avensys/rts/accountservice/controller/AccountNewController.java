@@ -1,6 +1,7 @@
 package com.avensys.rts.accountservice.controller;
 
 import com.avensys.rts.accountservice.constant.MessageConstants;
+import com.avensys.rts.accountservice.payloadnewrequest.AccountListingRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountNewRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
 import com.avensys.rts.accountservice.payloadrequest.AccountRequestDTO;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -43,22 +45,8 @@ public class AccountNewController {
     @PostMapping("/accounts")
     public ResponseEntity<Object> addAccount(@Valid @ModelAttribute AccountNewRequestDTO accountRequest) {
         log.info("Account create: Controller");
-//        String formData = accountRequest.getFormData();
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        try {
-//            JsonNode jsonNode = objectMapper.readTree(formData);
-//            System.out.println("JsonNode: " + jsonNode);
-//            // Now, jsonNode contains your JSON data
-//            // ...
-//        } catch (IOException e) {
-//            System.out.println("Exception: " + e.getMessage());
-//            // Handle exception
-//        }
-//        System.out.println("Form Data: " + formData);
-        AccountResponseDTO account = accountService.createAccount(accountRequest);
+        AccountNewResponseDTO account = accountService.createAccount(accountRequest);
         return ResponseUtil.generateSuccessResponse(account, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
-//        return ResponseUtil.generateSuccessResponse(null, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
-
     }
 
     @GetMapping("/accounts/{accountId}")
@@ -88,4 +76,41 @@ public class AccountNewController {
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsName(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
+    @GetMapping("/accounts/fields")
+    public ResponseEntity<Object> getAllAccountsFields() {
+        log.info("Account get all fields: Controller");
+        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsNew(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
+    @PostMapping("/accounts/listing")
+    public ResponseEntity<Object> getAccountListing(@RequestBody AccountListingRequestDTO accountListingRequestDTO)  {
+        log.info("Account get all fields: Controller");
+        Integer page = accountListingRequestDTO.getPage();
+        Integer pageSize = accountListingRequestDTO.getPageSize();
+        String sortBy = accountListingRequestDTO.getSortBy();
+        String sortDirection = accountListingRequestDTO.getSortDirection();
+        String searchTerm = accountListingRequestDTO.getSearchTerm();
+        List<String> searchFields = accountListingRequestDTO.getSearchFields();
+        System.out.println(("Test 1"));
+        System.out.println("Page: " + page);
+        System.out.println("PageSize: " + pageSize);
+        System.out.println("SortBy: " + sortBy);
+        System.out.println("SortDirection: " + sortDirection);
+        System.out.println("SearchTerm: " + searchTerm);
+        System.out.println("SearchFields: " + searchFields);
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            System.out.println(("Test 2"));
+            return ResponseUtil.generateSuccessResponse(accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        }
+        return ResponseUtil.generateSuccessResponse(accountService.getAccountListingPageWithSearch(
+                page, pageSize, sortBy, sortDirection, searchTerm, searchFields), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
+    // Delete draft account
+    @DeleteMapping("accounts/draft/{accountId}")
+    public ResponseEntity<Object> deleteDraftAccount(@PathVariable int accountId) {
+        log.info("Account delete: Controller");
+        accountService.deleteDraftAccount(accountId);
+        return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
 }

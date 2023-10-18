@@ -19,4 +19,8 @@ public interface FormSubmissionAPIClient {
 
     @PutMapping("/form-submissions/{formSubmissionId}")
     HttpResponse updateFormSubmission(@PathVariable int formSubmissionId, @RequestBody FormSubmissionsRequestDTO formSubmissionsRequestDTO);
+
+    @DeleteMapping("/form-submissions/{formSubmissionId}")
+    HttpResponse deleteFormSubmission(@PathVariable int formSubmissionId);
+
 }

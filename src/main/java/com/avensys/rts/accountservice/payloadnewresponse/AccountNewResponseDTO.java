@@ -20,4 +20,5 @@ public class AccountNewResponseDTO {
     private String updatedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private JsonNode accountSubmissionData;
 }

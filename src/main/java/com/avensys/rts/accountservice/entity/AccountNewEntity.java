@@ -72,11 +72,11 @@ public class AccountNewEntity {
     @Column(name = "commercial_form_submission_id")
     private Integer commercialFormSubmissionId;
 
-//    @JdbcTypeCode(SqlTypes.JSON)
-//    @Column(name="account_submission_data", columnDefinition = "jsonb")
-//    private JsonNode accountSubmissionData;
-//
-//    @JdbcTypeCode(SqlTypes.JSON)
-//    @Column(name="commercial_submission_data", columnDefinition = "jsonb")
-//    private JsonNode commercialSubmissionData;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name="account_submission_data", columnDefinition = "jsonb")
+    private JsonNode accountSubmissionData;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name="commercial_submission_data", columnDefinition = "jsonb")
+    private JsonNode commercialSubmissionData;
 }
