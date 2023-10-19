@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class AccountNewListingDataDTO {
 
+    private Integer id;
     private JsonNode accountSubmissionData;
     private JsonNode commercialSubmissionData;
     private String accountNumber;
@@ -23,6 +24,7 @@ public class AccountNewListingDataDTO {
     private LocalDateTime updatedAt;
 
     public AccountNewListingDataDTO(AccountNewEntity accountNewEntity) {
+        this.id = accountNewEntity.getId();
         this.accountSubmissionData = accountNewEntity.getAccountSubmissionData();
         this.commercialSubmissionData = accountNewEntity.getCommercialSubmissionData();
         this.accountNumber = accountNewEntity.getAccountNumber();
