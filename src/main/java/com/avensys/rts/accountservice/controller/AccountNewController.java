@@ -1,16 +1,15 @@
 package com.avensys.rts.accountservice.controller;
 
+import com.avensys.rts.accountservice.annotation.RequiresAllPermissions;
+import com.avensys.rts.accountservice.annotation.RequiresAnyPermission;
+import com.avensys.rts.accountservice.annotation.RequiresAnyRole;
 import com.avensys.rts.accountservice.constant.MessageConstants;
+import com.avensys.rts.accountservice.enums.Role;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountListingRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountNewRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
-import com.avensys.rts.accountservice.payloadrequest.AccountRequestDTO;
-import com.avensys.rts.accountservice.payloadresponse.AccountResponseDTO;
 import com.avensys.rts.accountservice.service.AccountNewServiceImpl;
-import com.avensys.rts.accountservice.service.AccountServiceImpl;
 import com.avensys.rts.accountservice.util.ResponseUtil;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -28,7 +26,6 @@ import java.util.List;
 public class AccountNewController {
 
     private final Logger log = LoggerFactory.getLogger(AccountController.class);
-
     private final AccountNewServiceImpl accountService;
     private final MessageSource messageSource;
 
@@ -82,6 +79,8 @@ public class AccountNewController {
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsNew(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
+//    @RequiresAllPermissions
+//    @RequiresAnyRole(Role.SUPERADMIN)
     @PostMapping("/accounts/listing")
     public ResponseEntity<Object> getAccountListing(@RequestBody AccountListingRequestDTO accountListingRequestDTO)  {
         log.info("Account get all fields: Controller");
@@ -106,11 +105,26 @@ public class AccountNewController {
                 page, pageSize, sortBy, sortDirection, searchTerm, searchFields), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
-    // Delete draft account
+    /**
+     * Hard delete draft account
+     * @param accountId
+     * @return
+     */
     @DeleteMapping("accounts/draft/{accountId}")
     public ResponseEntity<Object> deleteDraftAccount(@PathVariable int accountId) {
         log.info("Account delete: Controller");
         accountService.deleteDraftAccount(accountId);
         return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
+
+    /**
+     * Soft delete existing account
+     */
+    @DeleteMapping("accounts/{accountId}")
+    public ResponseEntity<Object> softDeleteAccount(@PathVariable int accountId) {
+        log.info("Account soft delete: Controller");
+        accountService.softDeleteAccount(accountId);
+        return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
 }

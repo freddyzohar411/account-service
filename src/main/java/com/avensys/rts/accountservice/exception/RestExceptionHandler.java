@@ -156,4 +156,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler  {
         return ResponseUtil.generateErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    /**
+     * This method is used to handle PermissionDeniedException
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(PermissionDeniedException.class)
+    public ResponseEntity<Object> handlePermissionDeniedException(PermissionDeniedException ex) {
+        return ResponseUtil.generateErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
 }

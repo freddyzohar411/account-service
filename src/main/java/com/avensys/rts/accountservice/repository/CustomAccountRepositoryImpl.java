@@ -1,10 +1,6 @@
 package com.avensys.rts.accountservice.repository;
 
 import com.avensys.rts.accountservice.entity.AccountNewEntity;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -13,7 +9,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.io.IOException;
 import java.util.List;
 
 @Repository
@@ -26,7 +21,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
     public Page<AccountNewEntity> findAllByOrderBy(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable) {
         String sortBy = pageable.getSort().get().findFirst().get().getProperty();
         // Determine if sortBy is a regular column or a JSONB column
-        String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "id";
+        String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
         if (sortBy.contains(".")) {  // assuming sortBy is in the format "jsonColumn.jsonKey"
             String[] parts = sortBy.split("\\.");
             String jsonColumnName = parts[0];
@@ -76,7 +71,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
     public Page<AccountNewEntity> findAllByOrderByString(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable) {
         String sortBy = pageable.getSort().get().findFirst().get().getProperty();
         // Determine if sortBy is a regular column or a JSONB column
-        String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "id";
+        String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
         if (sortBy.contains(".")) {  // assuming sortBy is in the format "jsonColumn.jsonKey"
             String[] parts = sortBy.split("\\.");
             String jsonColumnName = parts[0];
@@ -121,7 +116,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
     public Page<AccountNewEntity> findAllByOrderByNumeric(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable) {
         String sortBy = pageable.getSort().get().findFirst().get().getProperty();
         // Determine if sortBy is a regular column or a JSONB column
-        String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "id";
+        String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
         if (sortBy.contains(".")) {  // assuming sortBy is in the format "jsonColumn.jsonKey"
             String[] parts = sortBy.split("\\.");
             String jsonColumnName = parts[0];
@@ -173,7 +168,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
     public Page<AccountNewEntity> findAllByOrderByAndSearchString(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable, List<String> searchFields, String searchTerm) {
 
         // Determine if sortBy is a regular column or a JSONB column
-        String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "id";
+        String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
         String orderByClause;
         if (sortBy.contains(".")) {  // assuming sortBy is in the format "jsonColumn.jsonKey"
             String[] parts = sortBy.split("\\.");
@@ -247,7 +242,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
     public Page<AccountNewEntity> findAllByOrderByAndSearchNumeric(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable, List<String> searchFields, String searchTerm) {
 
         // Determine if sortBy is a regular column or a JSONB column
-        String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "id";
+        String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
         String orderByClause;
         if (sortBy.contains(".")) {  // assuming sortBy is in the format "jsonColumn.jsonKey"
             String[] parts = sortBy.split("\\.");

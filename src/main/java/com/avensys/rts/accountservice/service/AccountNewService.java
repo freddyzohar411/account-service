@@ -41,4 +41,7 @@ public interface AccountNewService {
     AccountListingNewResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields);
 
     void deleteDraftAccount(Integer accountId);
+
+    void softDeleteAccount(Integer accountId);
+
 }
