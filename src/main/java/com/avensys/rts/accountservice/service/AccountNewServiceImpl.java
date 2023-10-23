@@ -272,8 +272,8 @@ public class AccountNewServiceImpl implements AccountNewService {
         }
         if (sortBy == null || sortBy.isEmpty() || sortBy.equals("")) {
             sortBy = "updated_at";
+            direction = Sort.Direction.DESC;
         }
-
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<AccountNewEntity> accountEntitiesPage = null;
@@ -306,6 +306,7 @@ public class AccountNewServiceImpl implements AccountNewService {
         }
         if (sortBy == null) {
             sortBy = "updated_at";
+            direction = Sort.Direction.DESC;
         }
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
@@ -367,6 +368,19 @@ public class AccountNewServiceImpl implements AccountNewService {
         accountEntityFound.setParentCompany(null);
         accountRepository.delete(accountEntityFound);
         System.out.println("Draft account deleted");
+    }
+
+    @Override
+    public void softDeleteAccount(Integer accountId) {
+        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(accountId, false).orElseThrow(
+                () -> new RuntimeException("Account not found")
+        );
+
+        // Soft delete the account
+        accountEntityFound.setDeleted(true);
+
+        // Save account
+        accountRepository.save(accountEntityFound);
     }
 
     /**
