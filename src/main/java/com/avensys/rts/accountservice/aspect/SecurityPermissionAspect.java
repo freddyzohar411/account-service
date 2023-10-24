@@ -54,6 +54,7 @@ public class SecurityPermissionAspect {
             // Logic to get permission from UserAPI Microservice
             List<String> userPermissions = getPermission();
             // Check if the user has at least one permission from the required permissions
+            // If it comese in a map of modules and permission than check for module and permission
             if (requiredPermissions.stream().anyMatch(userPermissions::contains)) {
                 System.out.println("User has permission");
             } else{
@@ -74,5 +75,10 @@ public class SecurityPermissionAspect {
         String[] userPermissions = {"WRITE", "DELETE", "EDIT"};
 //        String[] userPermissions = {"READ"};
         return List.of(userPermissions);
+    }
+
+    private List<String> getPermission2() {
+//        String[] userPermissions = {"READ"};
+        return List.of("WRITE", "DELETE", "EDIT");
     }
 }

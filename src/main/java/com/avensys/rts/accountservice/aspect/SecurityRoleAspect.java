@@ -33,6 +33,7 @@ public class SecurityRoleAspect {
         List<String> requiredRoles = Arrays.stream(requiresRole.value()).map(Role::toString).toList();
         requiredRoles.forEach(System.out::println);
 
+
         if (!requiredRoles.isEmpty()) {
             // Logic to get roles from UserAPI Microservice
             List<String> userRoles = getRoles();
