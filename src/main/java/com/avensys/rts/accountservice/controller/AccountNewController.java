@@ -4,6 +4,7 @@ import com.avensys.rts.accountservice.annotation.RequiresAllPermissions;
 import com.avensys.rts.accountservice.annotation.RequiresAnyPermission;
 import com.avensys.rts.accountservice.annotation.RequiresAnyRole;
 import com.avensys.rts.accountservice.constant.MessageConstants;
+import com.avensys.rts.accountservice.enums.Permission;
 import com.avensys.rts.accountservice.enums.Role;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountListingRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountNewRequestDTO;
@@ -79,8 +80,7 @@ public class AccountNewController {
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsNew(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
-//    @RequiresAllPermissions
-//    @RequiresAnyRole(Role.SUPERADMIN)
+//    @RequiresAllPermissions({Permission.READ})
     @PostMapping("/accounts/listing")
     public ResponseEntity<Object> getAccountListing(@RequestBody AccountListingRequestDTO accountListingRequestDTO)  {
         log.info("Account get all fields: Controller");
