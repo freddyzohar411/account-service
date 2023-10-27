@@ -48,4 +48,7 @@ public class AccountNewRequestDTO {
     // Form Submission
     private String formData;
     private Integer formId;
+
+    // Added -27102023
+    private String accountCountry;
 }

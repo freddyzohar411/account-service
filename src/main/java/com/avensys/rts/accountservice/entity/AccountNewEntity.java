@@ -79,4 +79,8 @@ public class AccountNewEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name="commercial_submission_data", columnDefinition = "jsonb")
     private JsonNode commercialSubmissionData;
+
+    // Added - 27102023
+    @Column(name = "account_country")
+    private String accountCountry;
 }

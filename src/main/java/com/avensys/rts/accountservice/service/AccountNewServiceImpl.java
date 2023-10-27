@@ -106,7 +106,6 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     /**
      * Get account by id
-     *
      * @param id
      * @return
      */
@@ -442,6 +441,7 @@ public class AccountNewServiceImpl implements AccountNewService {
         accountResponseDTO.setFormId(accountEntity.getFormId());
         accountResponseDTO.setCreatedAt(accountEntity.getCreatedAt());
         accountResponseDTO.setUpdatedAt(accountEntity.getUpdatedAt());
+        accountResponseDTO.setAccountCountry(accountEntity.getAccountCountry());
 
         // Get created by User data from user microservice
         HttpResponse userResponse = userAPIClient.getUserById(accountEntity.getCreatedBy());
@@ -477,6 +477,7 @@ public class AccountNewServiceImpl implements AccountNewService {
         accountEntity.setCreatedBy(getUserId());
         accountEntity.setUpdatedBy(getUserId());
         accountEntity.setFormId(accountRequest.getFormId());
+        accountEntity.setAccountCountry(accountRequest.getAccountCountry());
         return accountRepository.save(accountEntity);
     }
 

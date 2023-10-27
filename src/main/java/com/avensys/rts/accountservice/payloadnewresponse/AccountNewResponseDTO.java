@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class AccountNewResponseDTO {
     private Integer id;
     private String name;
+    private String accountCountry;
     private Integer formId;
     private String submissionData;
     private String createdBy;
