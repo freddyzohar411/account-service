@@ -17,13 +17,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Author: Koh He Xiang
+ * This is the controller class for the commercial service
+ */
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class CommercialController {
 
     private final Logger log = LoggerFactory.getLogger(CommercialController.class);
-
-
     private final CommercialServiceImpl commercialService;
     private final MessageSource messageSource;
 
@@ -33,8 +35,7 @@ public class CommercialController {
     }
 
     /**
-     * Create a commercial
-     *
+     * Create a commercial for an account
      * @param accountId
      * @param commercialRequest
      * @return
@@ -48,7 +49,6 @@ public class CommercialController {
 
     /**
      * Update a commercial
-     *
      * @param accountId
      * @param commercialRequest
      * @return
@@ -61,8 +61,7 @@ public class CommercialController {
     }
 
     /**
-     * Get a commercial
-     *
+     * Get a commercial by account id
      * @param accountId
      * @return
      */

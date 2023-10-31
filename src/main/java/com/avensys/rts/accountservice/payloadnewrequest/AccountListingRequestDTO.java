@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Author: Koh He Xiang
+ * This class is used to store the request parameters for the account listing api
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

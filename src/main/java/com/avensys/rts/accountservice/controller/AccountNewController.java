@@ -1,11 +1,8 @@
 package com.avensys.rts.accountservice.controller;
 
 import com.avensys.rts.accountservice.annotation.RequiresAllPermissions;
-import com.avensys.rts.accountservice.annotation.RequiresAnyPermission;
-import com.avensys.rts.accountservice.annotation.RequiresAnyRole;
 import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.enums.Permission;
-import com.avensys.rts.accountservice.enums.Role;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountListingRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountNewRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
@@ -21,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Author: Koh He Xiang
@@ -54,6 +53,7 @@ public class AccountNewController {
 
     /**
      * Get an account by id
+     *
      * @param accountId
      * @return
      */
@@ -66,6 +66,7 @@ public class AccountNewController {
 
     /**
      * Get an account draft if exists
+     *
      * @return
      */
     @GetMapping("/accounts/draft")
@@ -77,12 +78,13 @@ public class AccountNewController {
 
     /**
      * Update an account draft or existing account
+     *
      * @param accountId
      * @param accountRequest
      * @return
      */
     @PutMapping("/accounts/{accountId}")
-    public ResponseEntity<Object> updateAccount(@PathVariable int accountId,@ModelAttribute AccountNewRequestDTO accountRequest) {
+    public ResponseEntity<Object> updateAccount(@PathVariable int accountId, @ModelAttribute AccountNewRequestDTO accountRequest) {
         log.info("Account update: Controller");
         AccountNewResponseDTO account = accountService.updateAccount(accountId, accountRequest);
         return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
@@ -90,6 +92,7 @@ public class AccountNewController {
 
     /**
      * Get all accounts with id and names
+     *
      * @return
      */
     @GetMapping("/accounts/names")
@@ -100,6 +103,7 @@ public class AccountNewController {
 
     /**
      * Get all accounts field for all forms related to accounts
+     *
      * @return
      */
     @GetMapping("/accounts/fields")
@@ -110,12 +114,14 @@ public class AccountNewController {
 
     /**
      * Get all accounts field for all forms related to accounts
+     * with search and pagination
+     *
      * @param accountListingRequestDTO
      * @return
      */
-//    @RequiresAllPermissions({Permission.READ})
+    @RequiresAllPermissions({Permission.ACCOUNT_READ, Permission.ACCOUNT_WRITE})
     @PostMapping("/accounts/listing")
-    public ResponseEntity<Object> getAccountListing(@RequestBody AccountListingRequestDTO accountListingRequestDTO)  {
+    public ResponseEntity<Object> getAccountListing(@RequestBody AccountListingRequestDTO accountListingRequestDTO) {
         log.info("Account get all fields: Controller");
         Integer page = accountListingRequestDTO.getPage();
         Integer pageSize = accountListingRequestDTO.getPageSize();
@@ -132,6 +138,7 @@ public class AccountNewController {
 
     /**
      * Hard delete draft account
+     *
      * @param accountId
      * @return
      */
@@ -150,6 +157,37 @@ public class AccountNewController {
         log.info("Account soft delete: Controller");
         accountService.softDeleteAccount(accountId);
         return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
+    @GetMapping("accounts/search")
+    public ResponseEntity<Object> searchAccount(@RequestParam(
+            value = "query",
+            required = false
+    ) String query) {
+        log.info("Account search: Controller");
+        if (query != null) {
+            System.out.println("Query: " + query);
+            String regex = "(\\w+)([><]=?|!=|=)(\\w+)";
+
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(query);
+
+            while (matcher.find()) {
+                String fieldName = matcher.group(1);
+                String operator = matcher.group(2);
+                String value = matcher.group(3);
+
+                // Now you have fieldName, operator, and value for each key-value pair
+                System.out.println("Field Name: " + fieldName);
+                System.out.println("Operator: " + operator);
+                System.out.println("Value: " + value);
+            }
+        }
+
+        if (query == null || query.isEmpty()) {
+            return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsByUser(false, false), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        }
+        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsNameWithSearch(query), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
 }

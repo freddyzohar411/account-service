@@ -12,5 +12,5 @@ public interface CustomAccountRepository {
     Page<AccountNewEntity> findAllByOrderByNumeric(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable);
     Page<AccountNewEntity> findAllByOrderByAndSearchString(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable, List<String> searchFields, String searchTerm);
     Page<AccountNewEntity> findAllByOrderByAndSearchNumeric(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable, List<String> searchFields, String searchTerm);
-
+    List<AccountNewEntity> getAllAccountsNameWithSearch(String query, Integer userId, Boolean isDeleted, Boolean isDraft);
 }

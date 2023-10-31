@@ -44,4 +44,10 @@ public interface AccountNewService {
 
     void softDeleteAccount(Integer accountId);
 
+    List<AccountNewEntity> getAllAccountsNameWithSearch(String query);
+
+    List<AccountNewEntity> getAllAccountsByUser(boolean draft, boolean deleted);
+
+
+
 }

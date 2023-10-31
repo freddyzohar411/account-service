@@ -1,6 +1,7 @@
 package com.avensys.rts.accountservice.repository;
 
 import com.avensys.rts.accountservice.entity.AccountEntity;
+import com.avensys.rts.accountservice.entity.AccountNewEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -35,6 +36,9 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Integer>
 
         @Query(value = "SELECT a FROM account a WHERE a.createdBy = ?1 AND a.isDraft = ?2 AND a.isDeleted = ?3")
         Optional<AccountEntity> findByUserAndDraftAndDeleted(Integer userId, boolean draft, boolean deleted);
+
+        @Query(value = "SELECT a FROM account a WHERE a.createdBy = ?1 AND a.isDraft = ?2 AND a.isDeleted = ?3")
+        List<AccountNewEntity> findAllByUserAndDraftAndDeleted(Integer userId, boolean draft, boolean deleted);
 
         @Query(value = "SELECT a FROM account a WHERE a.createdBy = ?1 AND a.isDraft = ?2 AND a.isDeleted = ?3")
         Page<AccountEntity> findAllByPaginationAndSort(Integer createdBy, boolean draft, boolean deleted, Pageable pageable);

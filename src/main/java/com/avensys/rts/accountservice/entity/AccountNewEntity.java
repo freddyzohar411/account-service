@@ -12,6 +12,11 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
+/**
+ * Author: Koh He Xiang
+ * This is the entity class for the new account table in the database
+ * that works with dynamic form
+ */
 @Entity(name = "accountNew")
 @Table(name = "account_new")
 @Data
