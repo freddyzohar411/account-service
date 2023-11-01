@@ -44,6 +44,7 @@ public class AccountNewController {
      * @param accountRequest
      * @return
      */
+    @RequiresAllPermissions({Permission.ACCOUNT_WRITE})
     @PostMapping("/accounts")
     public ResponseEntity<Object> addAccount(@Valid @ModelAttribute AccountNewRequestDTO accountRequest) {
         log.info("Account create: Controller");
@@ -95,6 +96,7 @@ public class AccountNewController {
      *
      * @return
      */
+    @RequiresAllPermissions({Permission.ACCOUNT_WRITE})
     @GetMapping("/accounts/names")
     public ResponseEntity<Object> getAllAccountsName() {
         log.info("Account get all name: Controller");
@@ -119,7 +121,7 @@ public class AccountNewController {
      * @param accountListingRequestDTO
      * @return
      */
-    @RequiresAllPermissions({Permission.ACCOUNT_READ, Permission.ACCOUNT_WRITE})
+    @RequiresAllPermissions({Permission.ACCOUNT_READ})
     @PostMapping("/accounts/listing")
     public ResponseEntity<Object> getAccountListing(@RequestBody AccountListingRequestDTO accountListingRequestDTO) {
         log.info("Account get all fields: Controller");
@@ -152,6 +154,7 @@ public class AccountNewController {
     /**
      * Soft delete existing account
      */
+    @RequiresAllPermissions({Permission.ACCOUNT_DELETE})
     @DeleteMapping("accounts/{accountId}")
     public ResponseEntity<Object> softDeleteAccount(@PathVariable int accountId) {
         log.info("Account soft delete: Controller");

@@ -25,5 +25,8 @@ public interface UserAPIClient {
     @GetMapping("/email/{email}")
     HttpResponse getUserDetailByEmail(@PathVariable("email") String email);
 
+    @GetMapping("/profile")
+    HttpResponse getUserDetail();
+
 }
 

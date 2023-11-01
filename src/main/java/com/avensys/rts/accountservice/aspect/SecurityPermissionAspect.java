@@ -152,7 +152,8 @@ public class SecurityPermissionAspect {
 
     private UserDetailsResponseDTO getUserDetails() {
         String email = JwtUtil.getEmailFromContext();
-        HttpResponse userResponse = userAPIClient.getUserDetailByEmail(email);
+//        HttpResponse userResponse = userAPIClient.getUserDetailByEmail(email);
+        HttpResponse userResponse = userAPIClient.getUserDetail();
         UserDetailsResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserDetailsResponseDTO.class);
         return userData;
     }
