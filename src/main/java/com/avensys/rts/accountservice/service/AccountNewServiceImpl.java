@@ -25,6 +25,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class AccountNewServiceImpl implements AccountNewService {
@@ -106,7 +108,6 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     /**
      * Get account by id
-     *
      * @param id
      * @return
      */
@@ -383,6 +384,34 @@ public class AccountNewServiceImpl implements AccountNewService {
         accountRepository.save(accountEntityFound);
     }
 
+    @Override
+    public List<AccountNewEntity> getAllAccountsNameWithSearch(String query) {
+        // Regex to get the field name, operator and value
+//        String regex = "(\\w+)([><]=?|!=|=)(\\w+)";
+//
+//        Pattern pattern = Pattern.compile(regex);
+//        Matcher matcher = pattern.matcher(query);
+//
+//        while (matcher.find()) {
+//            String fieldName = matcher.group(1);
+//            String operator = matcher.group(2);
+//            String value = matcher.group(3);
+//
+//            // Now you have fieldName, operator, and value for each key-value pair
+//            System.out.println("Field Name: " + fieldName);
+//            System.out.println("Operator: " + operator);
+//            System.out.println("Value: " + value);
+//        }
+        List<AccountNewEntity> accountEntities = accountRepository.getAllAccountsNameWithSearch(query, getUserId(), false, false);
+        return accountEntities;
+    }
+
+    @Override
+    public List<AccountNewEntity> getAllAccountsByUser(boolean draft, boolean deleted) {
+        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDraftAndDeleted(getUserId(), draft, deleted);
+        return accountEntities;
+    }
+
     /**
      * Page to account listing new response
      */
@@ -442,6 +471,7 @@ public class AccountNewServiceImpl implements AccountNewService {
         accountResponseDTO.setFormId(accountEntity.getFormId());
         accountResponseDTO.setCreatedAt(accountEntity.getCreatedAt());
         accountResponseDTO.setUpdatedAt(accountEntity.getUpdatedAt());
+        accountResponseDTO.setAccountCountry(accountEntity.getAccountCountry());
 
         // Get created by User data from user microservice
         HttpResponse userResponse = userAPIClient.getUserById(accountEntity.getCreatedBy());
@@ -477,6 +507,7 @@ public class AccountNewServiceImpl implements AccountNewService {
         accountEntity.setCreatedBy(getUserId());
         accountEntity.setUpdatedBy(getUserId());
         accountEntity.setFormId(accountRequest.getFormId());
+        accountEntity.setAccountCountry(accountRequest.getAccountCountry());
         return accountRepository.save(accountEntity);
     }
 

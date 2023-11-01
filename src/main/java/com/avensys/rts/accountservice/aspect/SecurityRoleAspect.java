@@ -15,6 +15,7 @@ import com.avensys.rts.accountservice.util.MappingUtil;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -26,6 +27,9 @@ public class SecurityRoleAspect {
 
     @Autowired
     private UserAPIClient userAPIClient;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @Before("@annotation(requiresRole)")
     public void checkAllRoles(RequiresAllRoles requiresRole) {

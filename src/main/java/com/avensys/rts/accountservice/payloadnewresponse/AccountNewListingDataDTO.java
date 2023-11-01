@@ -22,6 +22,7 @@ public class AccountNewListingDataDTO {
     private String accountNumber;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String accountCountry;
 
     public AccountNewListingDataDTO(AccountNewEntity accountNewEntity) {
         this.id = accountNewEntity.getId();
@@ -30,6 +31,7 @@ public class AccountNewListingDataDTO {
         this.accountNumber = accountNewEntity.getAccountNumber();
         this.createdAt = accountNewEntity.getCreatedAt();
         this.updatedAt = accountNewEntity.getUpdatedAt();
+        this.accountCountry = accountNewEntity.getAccountCountry();
     }
 
     private String createdByName;

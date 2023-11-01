@@ -12,6 +12,11 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
+/**
+ * Author: Koh He Xiang
+ * This is the entity class for the new account table in the database
+ * that works with dynamic form
+ */
 @Entity(name = "accountNew")
 @Table(name = "account_new")
 @Data
@@ -79,4 +84,8 @@ public class AccountNewEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name="commercial_submission_data", columnDefinition = "jsonb")
     private JsonNode commercialSubmissionData;
+
+    // Added - 27102023
+    @Column(name = "account_country")
+    private String accountCountry;
 }

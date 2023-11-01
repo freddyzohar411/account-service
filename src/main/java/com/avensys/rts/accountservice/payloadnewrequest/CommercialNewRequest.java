@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Author: Koh He Xiang
+ * This class is used to store the request parameters for the new account commercial create api
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
