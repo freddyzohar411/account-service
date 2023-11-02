@@ -58,6 +58,7 @@ public class AccountNewController {
      * @param accountId
      * @return
      */
+    @RequiresAllPermissions({Permission.ACCOUNT_READ})
     @GetMapping("/accounts/{accountId}")
     public ResponseEntity<Object> getAccount(@PathVariable int accountId) {
         log.info("Account get: Controller");
@@ -70,6 +71,7 @@ public class AccountNewController {
      *
      * @return
      */
+    @RequiresAllPermissions({Permission.ACCOUNT_WRITE})
     @GetMapping("/accounts/draft")
     public ResponseEntity<Object> getAccountIfDraft() {
         log.info("Account get: Controller");
@@ -79,11 +81,11 @@ public class AccountNewController {
 
     /**
      * Update an account draft or existing account
-     *
      * @param accountId
      * @param accountRequest
      * @return
      */
+    @RequiresAllPermissions({Permission.ACCOUNT_EDIT})
     @PutMapping("/accounts/{accountId}")
     public ResponseEntity<Object> updateAccount(@PathVariable int accountId, @ModelAttribute AccountNewRequestDTO accountRequest) {
         log.info("Account update: Controller");
@@ -140,10 +142,10 @@ public class AccountNewController {
 
     /**
      * Hard delete draft account
-     *
      * @param accountId
      * @return
      */
+    @RequiresAllPermissions({Permission.ACCOUNT_WRITE})
     @DeleteMapping("accounts/draft/{accountId}")
     public ResponseEntity<Object> deleteDraftAccount(@PathVariable int accountId) {
         log.info("Account delete: Controller");
