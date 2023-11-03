@@ -98,7 +98,7 @@ public class AccountNewController {
      *
      * @return
      */
-    @RequiresAllPermissions({Permission.ACCOUNT_WRITE})
+    @RequiresAllPermissions({Permission.ACCOUNT_READ})
     @GetMapping("/accounts/names")
     public ResponseEntity<Object> getAllAccountsName() {
         log.info("Account get all name: Controller");
