@@ -16,14 +16,17 @@ public interface UserAPIClient {
     @GetMapping("/{id}")
     HttpResponse getUserById(@PathVariable("id") Integer id);
 
-    @GetMapping("")
-    HttpResponse getUserByEmail(@RequestParam("email") String email);
+//    @GetMapping("")
+//    HttpResponse getUserByEmail(@RequestParam("email") String email);
 
     @GetMapping("/{id}")
     HttpResponse find(@PathVariable("id") Long id);
 
+//    @GetMapping("/email/{email}")
+//    HttpResponse getUserDetailByEmail(@PathVariable("email") String email);
+
     @GetMapping("/email/{email}")
-    HttpResponse getUserDetailByEmail(@PathVariable("email") String email);
+    HttpResponse getUserByEmail(@PathVariable("email") String email);
 
     @GetMapping("/profile")
     HttpResponse getUserDetail();
