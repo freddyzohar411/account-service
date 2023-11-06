@@ -114,14 +114,14 @@ public class AccountNewServiceImpl implements AccountNewService {
     @Override
     public AccountNewResponseDTO getAccount(Integer id) {
         // Get account data from account microservice
-        AccountNewEntity accountEntity = accountRepository.findByIdAndDeleted(id, false)
+        AccountNewEntity accountEntity = accountRepository.findByIdAndDeleted(id, false, true)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         return accountEntityToAccountResponseDTO(accountEntity);
     }
 
     @Override
     public AccountNewResponseDTO getAccountIfDraft() {
-        Optional<AccountNewEntity> accountEntity = accountRepository.findByUserAndDraftAndDeleted(getUserId(), true, false);
+        Optional<AccountNewEntity> accountEntity = accountRepository.findByUserAndDraftAndDeleted(getUserId(), true, false, true);
         if (accountEntity.isPresent()) {
             return accountEntityToAccountResponseDTO(accountEntity.get());
         }
@@ -136,7 +136,7 @@ public class AccountNewServiceImpl implements AccountNewService {
         System.out.println(accountRequest);
 
         // Get account data from account microservice
-        AccountNewEntity accountEntity = accountRepository.findByIdAndDeleted(id, false)
+        AccountNewEntity accountEntity = accountRepository.findByIdAndDeleted(id, false, true)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
         // Update account data
@@ -170,13 +170,13 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     @Override
     public List<AccountNameReponseDTO> getAllAccountsName() {
-        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false);
+        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false, true);
         return accountEntities.stream().map(this::accountNewEntityToAccountNameResponseDTO).toList();
     }
 
     @Override
     public List<Map<String, String>> getAllAccountsFields() {
-        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false);
+        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false, true);
         if (accountEntities.isEmpty()) {
             return null;
         }
@@ -231,7 +231,7 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     @Override
     public Set<FieldInformation> getAllAccountsFieldsNew() {
-        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false);
+        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false, true);
         if (accountEntities.isEmpty()) {
             return null;
         }
@@ -284,6 +284,7 @@ public class AccountNewServiceImpl implements AccountNewService {
                     getUserId(),
                     false,
                     false,
+                    true,
                     pageRequest
             );
         } catch (Exception e) {
@@ -291,6 +292,7 @@ public class AccountNewServiceImpl implements AccountNewService {
                     getUserId(),
                     false,
                     false,
+                    true,
                     pageRequest
             );
         }
@@ -318,6 +320,7 @@ public class AccountNewServiceImpl implements AccountNewService {
                     getUserId(),
                     false,
                     false,
+                    true,
                     pageRequest,
                     searchFields,
                     searchTerm
@@ -327,6 +330,7 @@ public class AccountNewServiceImpl implements AccountNewService {
                     getUserId(),
                     false,
                     false,
+                    true,
                     pageRequest,
                     searchFields,
                     searchTerm
@@ -339,7 +343,7 @@ public class AccountNewServiceImpl implements AccountNewService {
     @Transactional
     public void deleteDraftAccount(Integer accountId) {
         // Get account which is in draft state.
-        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDraft(accountId, true).orElseThrow(
+        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDraft(accountId, true, true).orElseThrow(
                 () -> new RuntimeException("Account not found")
         );
 
@@ -373,12 +377,12 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     @Override
     public void softDeleteAccount(Integer accountId) {
-        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(accountId, false).orElseThrow(
+        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(accountId, false, true).orElseThrow(
                 () -> new RuntimeException("Account not found")
         );
 
         // Soft delete the account
-        accountEntityFound.setDeleted(true);
+        accountEntityFound.setIsDeleted(true);
 
         // Save account
         accountRepository.save(accountEntityFound);
@@ -408,7 +412,7 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     @Override
     public List<AccountNewEntity> getAllAccountsByUser(boolean draft, boolean deleted) {
-        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDraftAndDeleted(getUserId(), draft, deleted);
+        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDraftAndDeleted(getUserId(), draft, deleted, true);
         return accountEntities;
     }
 
@@ -502,8 +506,8 @@ public class AccountNewServiceImpl implements AccountNewService {
         AccountNewEntity accountEntity = new AccountNewEntity();
         accountEntity.setName(accountRequest.getAccountName());
         accountEntity.setAccountNumber("A" + RandomStringUtils.randomNumeric(7));
-        accountEntity.setDraft(true);
-        accountEntity.setDeleted(false);
+        accountEntity.setIsDraft(true);
+        accountEntity.setIsDeleted(false);
         accountEntity.setCreatedBy(getUserId());
         accountEntity.setUpdatedBy(getUserId());
         accountEntity.setFormId(accountRequest.getFormId());
