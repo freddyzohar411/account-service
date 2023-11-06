@@ -36,7 +36,7 @@ public class CommercialServiceImpl implements CommercialService{
     @Override
     @Transactional
     public CommercialNewResponseDTO createCommercial(Integer id, CommercialNewRequest commercialNewRequest) {
-        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(id, false)
+        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(id, false, true)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         accountEntityFound.setMarkUp(commercialNewRequest.getMarkUp());
         accountEntityFound.setMsp(commercialNewRequest.getMsp());
@@ -57,7 +57,7 @@ public class CommercialServiceImpl implements CommercialService{
 
     @Override
     public CommercialNewResponseDTO getCommercial(Integer id) {
-        Optional<AccountNewEntity> accountEntity = accountRepository.findByIdAndDeleted(id, false);
+        Optional<AccountNewEntity> accountEntity = accountRepository.findByIdAndDeleted(id, false, true);
         if (accountEntity.isPresent()) {
             return commercialEntityToCommercialNewResponseDTO(accountEntity.get());
         }
@@ -66,7 +66,7 @@ public class CommercialServiceImpl implements CommercialService{
 
     @Override
     public CommercialNewResponseDTO updateCommercial(Integer id, CommercialNewRequest commercialNewRequest) {
-        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(id, false)
+        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(id, false, true)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         accountEntityFound.setMarkUp(commercialNewRequest.getMarkUp());
         accountEntityFound.setMsp(commercialNewRequest.getMsp());
