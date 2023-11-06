@@ -7,10 +7,21 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface CustomAccountRepository {
-    Page<AccountNewEntity> findAllByOrderBy(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable);
-    Page<AccountNewEntity> findAllByOrderByString(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable);
-    Page<AccountNewEntity> findAllByOrderByNumeric(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable);
-    Page<AccountNewEntity> findAllByOrderByAndSearchString(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable, List<String> searchFields, String searchTerm);
-    Page<AccountNewEntity> findAllByOrderByAndSearchNumeric(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable, List<String> searchFields, String searchTerm);
-    List<AccountNewEntity> getAllAccountsNameWithSearch(String query, Integer userId, Boolean isDeleted, Boolean isDraft);
+	Page<AccountNewEntity> findAllByOrderBy(Integer userId, Boolean isDeleted, Boolean isDraft, Boolean isActive,
+			Pageable pageable);
+
+	Page<AccountNewEntity> findAllByOrderByString(Integer userId, Boolean isDeleted, Boolean isDraft, Boolean isActive,
+			Pageable pageable);
+
+	Page<AccountNewEntity> findAllByOrderByNumeric(Integer userId, Boolean isDeleted, Boolean isDraft, Boolean isActive,
+			Pageable pageable);
+
+	Page<AccountNewEntity> findAllByOrderByAndSearchString(Integer userId, Boolean isDeleted, Boolean isDraft,
+			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm);
+
+	Page<AccountNewEntity> findAllByOrderByAndSearchNumeric(Integer userId, Boolean isDeleted, Boolean isDraft,
+			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm);
+
+	List<AccountNewEntity> getAllAccountsNameWithSearch(String query, Integer userId, Boolean isDeleted,
+			Boolean isDraft);
 }

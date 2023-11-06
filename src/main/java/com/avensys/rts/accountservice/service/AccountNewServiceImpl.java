@@ -284,6 +284,7 @@ public class AccountNewServiceImpl implements AccountNewService {
                     getUserId(),
                     false,
                     false,
+                    true,
                     pageRequest
             );
         } catch (Exception e) {
@@ -291,6 +292,7 @@ public class AccountNewServiceImpl implements AccountNewService {
                     getUserId(),
                     false,
                     false,
+                    true,
                     pageRequest
             );
         }
@@ -318,6 +320,7 @@ public class AccountNewServiceImpl implements AccountNewService {
                     getUserId(),
                     false,
                     false,
+                    true,
                     pageRequest,
                     searchFields,
                     searchTerm
@@ -327,6 +330,7 @@ public class AccountNewServiceImpl implements AccountNewService {
                     getUserId(),
                     false,
                     false,
+                    true,
                     pageRequest,
                     searchFields,
                     searchTerm
@@ -378,7 +382,7 @@ public class AccountNewServiceImpl implements AccountNewService {
         );
 
         // Soft delete the account
-        accountEntityFound.setDeleted(true);
+        accountEntityFound.setIsDeleted(true);
 
         // Save account
         accountRepository.save(accountEntityFound);
@@ -502,8 +506,8 @@ public class AccountNewServiceImpl implements AccountNewService {
         AccountNewEntity accountEntity = new AccountNewEntity();
         accountEntity.setName(accountRequest.getAccountName());
         accountEntity.setAccountNumber("A" + RandomStringUtils.randomNumeric(7));
-        accountEntity.setDraft(true);
-        accountEntity.setDeleted(false);
+        accountEntity.setIsDraft(true);
+        accountEntity.setIsDeleted(false);
         accountEntity.setCreatedBy(getUserId());
         accountEntity.setUpdatedBy(getUserId());
         accountEntity.setFormId(accountRequest.getFormId());

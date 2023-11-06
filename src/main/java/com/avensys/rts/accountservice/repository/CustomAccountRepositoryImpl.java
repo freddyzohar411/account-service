@@ -22,7 +22,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
     private EntityManager entityManager;
 
     @Override
-    public Page<AccountNewEntity> findAllByOrderBy(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable) {
+    public Page<AccountNewEntity> findAllByOrderBy(Integer userId, Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable) {
         String sortBy = pageable.getSort().get().findFirst().get().getProperty();
         // Determine if sortBy is a regular column or a JSONB column
         String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
@@ -42,7 +42,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
         // Build the complete query string
         String queryString = String.format(
-                "SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted ORDER BY %s %s NULLS LAST",
+                "SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
                 orderByClause, sortDirection);
 
         // Create and execute the query
@@ -50,6 +50,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
         query.setParameter("userId", userId);
         query.setParameter("isDeleted", isDeleted);
         query.setParameter("isDraft", isDraft);
+        query.setParameter("isActive", isActive);
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
 
@@ -57,13 +58,14 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
         List<AccountNewEntity> resultList = query.getResultList();
 
         // Build the count query string
-        String countQueryString = "SELECT COUNT(*) FROM account_new WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft";
+        String countQueryString = "SELECT COUNT(*) FROM account_new WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive";
 
         // Create and execute the count query
         Query countQuery = entityManager.createNativeQuery(countQueryString);
         countQuery.setParameter("userId", userId);
         countQuery.setParameter("isDeleted", isDeleted);
         countQuery.setParameter("isDraft", isDraft);
+        countQuery.setParameter("isActive", isActive);
         Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
         // Create and return a Page object
@@ -72,7 +74,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 
     @Override
-    public Page<AccountNewEntity> findAllByOrderByString(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable) {
+    public Page<AccountNewEntity> findAllByOrderByString(Integer userId, Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable) {
         String sortBy = pageable.getSort().get().findFirst().get().getProperty();
         // Determine if sortBy is a regular column or a JSONB column
         String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
@@ -88,7 +90,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
         // Build the complete query string
         String queryString = String.format(
-                "SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted ORDER BY %s %s NULLS LAST",
+                "SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
                 orderByClause, sortDirection);
 
         // Create and execute the query
@@ -96,6 +98,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
         query.setParameter("userId", userId);
         query.setParameter("isDeleted", isDeleted);
         query.setParameter("isDraft", isDraft);
+        query.setParameter("isActive", isActive);
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
 
@@ -103,13 +106,14 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
         List<AccountNewEntity> resultList = query.getResultList();
 
         // Build the count query string
-        String countQueryString = "SELECT COUNT(*) FROM account_new WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft";
+        String countQueryString = "SELECT COUNT(*) FROM account_new WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive";
 
         // Create and execute the count query
         Query countQuery = entityManager.createNativeQuery(countQueryString);
         countQuery.setParameter("userId", userId);
         countQuery.setParameter("isDeleted", isDeleted);
         countQuery.setParameter("isDraft", isDraft);
+        countQuery.setParameter("isActive", isActive);
         Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
         // Create and return a Page object
@@ -117,7 +121,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
     }
 
     @Override
-    public Page<AccountNewEntity> findAllByOrderByNumeric(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable) {
+    public Page<AccountNewEntity> findAllByOrderByNumeric(Integer userId, Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable) {
         String sortBy = pageable.getSort().get().findFirst().get().getProperty();
         // Determine if sortBy is a regular column or a JSONB column
         String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
@@ -136,7 +140,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
         // Build the complete query string
         String queryString = String.format(
-                "SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted ORDER BY %s %s NULLS LAST",
+                "SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
                 orderByClause, sortDirection);
 
         // Log the generated SQL (for debugging)
@@ -147,6 +151,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
         query.setParameter("userId", userId);
         query.setParameter("isDeleted", isDeleted);
         query.setParameter("isDraft", isDraft);
+        query.setParameter("isActive", isActive);
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
 
@@ -154,13 +159,14 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
         List<AccountNewEntity> resultList = query.getResultList();
 
         // Build the count query string
-        String countQueryString = "SELECT COUNT(*) FROM account_new WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft";
+        String countQueryString = "SELECT COUNT(*) FROM account_new WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive";
 
         // Create and execute the count query
         Query countQuery = entityManager.createNativeQuery(countQueryString);
         countQuery.setParameter("userId", userId);
         countQuery.setParameter("isDeleted", isDeleted);
         countQuery.setParameter("isDraft", isDraft);
+        countQuery.setParameter("isActive", isActive);
         Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
         // Create and return a Page object
@@ -169,7 +175,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 
     @Override
-    public Page<AccountNewEntity> findAllByOrderByAndSearchString(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable, List<String> searchFields, String searchTerm) {
+    public Page<AccountNewEntity> findAllByOrderByAndSearchString(Integer userId, Boolean isDeleted, Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
 
         // Determine if sortBy is a regular column or a JSONB column
         String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
@@ -208,7 +214,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
         // Build the complete query string
         String queryString = String.format(
-                "SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND (%s) ORDER BY %s %s NULLS LAST",
+                "SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
                 searchConditions.toString(),
                 orderByClause,
                 sortDirection);
@@ -218,6 +224,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
         query.setParameter("userId", userId);
         query.setParameter("isDeleted", isDeleted);
         query.setParameter("isDraft", isDraft);
+        query.setParameter("isActive", isActive);
         query.setParameter("searchTerm", "%" + searchTerm + "%");
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
@@ -227,7 +234,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
         // Build the count query string
         String countQueryString = String.format(
-                "SELECT COUNT(*) FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND (%s)",
+                "SELECT COUNT(*) FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND (%s)",
                 searchConditions.toString());
 
         // Create and execute the count query
@@ -235,6 +242,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
         countQuery.setParameter("userId", userId);
         countQuery.setParameter("isDeleted", isDeleted);
         countQuery.setParameter("isDraft", isDraft);
+        countQuery.setParameter("isActive", isActive);
         countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
         Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
@@ -243,7 +251,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
     }
 
     @Override
-    public Page<AccountNewEntity> findAllByOrderByAndSearchNumeric(Integer userId, Boolean isDeleted, Boolean isDraft, Pageable pageable, List<String> searchFields, String searchTerm) {
+    public Page<AccountNewEntity> findAllByOrderByAndSearchNumeric(Integer userId, Boolean isDeleted, Boolean isDraft,Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
 
         // Determine if sortBy is a regular column or a JSONB column
         String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty() : "updated_at";
@@ -285,7 +293,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
         // Build the complete query string
         String queryString = String.format(
-                "SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND (%s) ORDER BY %s %s NULLS LAST",
+                "SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
                 searchConditions.toString(),
                 orderByClause,
                 sortDirection);
@@ -295,6 +303,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
         query.setParameter("userId", userId);
         query.setParameter("isDeleted", isDeleted);
         query.setParameter("isDraft", isDraft);
+        query.setParameter("isActive", isActive);
         query.setParameter("searchTerm", "%" + searchTerm + "%");
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
@@ -304,7 +313,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
         // Build the count query string
         String countQueryString = String.format(
-                "SELECT COUNT(*) FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND (%s)",
+                "SELECT COUNT(*) FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive AND (%s)",
                 searchConditions.toString());
 
         // Create and execute the count query
@@ -312,6 +321,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
         countQuery.setParameter("userId", userId);
         countQuery.setParameter("isDeleted", isDeleted);
         countQuery.setParameter("isDraft", isDraft);
+        countQuery.setParameter("isActive", isActive);
         countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
         Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 

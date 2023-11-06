@@ -51,7 +51,7 @@ public class CommercialServiceImpl implements CommercialService{
         accountEntityFound.setCommercialSubmissionData(formSubmissionData.getSubmissionData());
 
         accountEntityFound.setCommercialFormSubmissionId(formSubmissionData.getId());
-        accountEntityFound.setDraft(false);
+        accountEntityFound.setIsDraft(false);
         return commercialEntityToCommercialNewResponseDTO(accountRepository.save(accountEntityFound));
     }
 
@@ -81,7 +81,7 @@ public class CommercialServiceImpl implements CommercialService{
         accountEntityFound.setCommercialSubmissionData(formSubmissionData.getSubmissionData());
 
         accountEntityFound.setCommercialFormSubmissionId(formSubmissionData.getId());
-        accountEntityFound.setDraft(false);
+        accountEntityFound.setIsDraft(false);
         return commercialEntityToCommercialNewResponseDTO(accountRepository.save(accountEntityFound));
     }
 
