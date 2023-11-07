@@ -49,12 +49,11 @@ public class AccountNewController {
     public ResponseEntity<Object> addAccount(@Valid @ModelAttribute AccountNewRequestDTO accountRequest) {
         log.info("Account create: Controller");
         AccountNewResponseDTO account = accountService.createAccount(accountRequest);
-        return ResponseUtil.generateSuccessResponse(account, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
+        return ResponseUtil.generateSuccessResponse(account, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.ACCOUNT_CREATED, null, LocaleContextHolder.getLocale()));
     }
 
     /**
      * Get an account by id
-     *
      * @param accountId
      * @return
      */
@@ -63,12 +62,11 @@ public class AccountNewController {
     public ResponseEntity<Object> getAccount(@PathVariable int accountId) {
         log.info("Account get: Controller");
         AccountNewResponseDTO account = accountService.getAccount(accountId);
-        return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
     /**
      * Get an account draft if exists
-     *
      * @return
      */
     @RequiresAllPermissions({Permission.ACCOUNT_WRITE})
@@ -76,7 +74,7 @@ public class AccountNewController {
     public ResponseEntity<Object> getAccountIfDraft() {
         log.info("Account get: Controller");
         AccountNewResponseDTO account = accountService.getAccountIfDraft();
-        return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
     /**
@@ -90,30 +88,28 @@ public class AccountNewController {
     public ResponseEntity<Object> updateAccount(@PathVariable int accountId, @ModelAttribute AccountNewRequestDTO accountRequest) {
         log.info("Account update: Controller");
         AccountNewResponseDTO account = accountService.updateAccount(accountId, accountRequest);
-        return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_UPDATED, null, LocaleContextHolder.getLocale()));
     }
 
     /**
      * Get all accounts with id and names
-     *
      * @return
      */
     @RequiresAllPermissions({Permission.ACCOUNT_READ})
     @GetMapping("/accounts/names")
     public ResponseEntity<Object> getAllAccountsName() {
         log.info("Account get all name: Controller");
-        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsName(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsName(), HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
     /**
      * Get all accounts field for all forms related to accounts
-     *
      * @return
      */
     @GetMapping("/accounts/fields")
     public ResponseEntity<Object> getAllAccountsFields() {
         log.info("Account get all fields: Controller");
-        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsNew(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsNew(), HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
     /**
@@ -137,7 +133,7 @@ public class AccountNewController {
             return ResponseUtil.generateSuccessResponse(accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
         }
         return ResponseUtil.generateSuccessResponse(accountService.getAccountListingPageWithSearch(
-                page, pageSize, sortBy, sortDirection, searchTerm, searchFields), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+                page, pageSize, sortBy, sortDirection, searchTerm, searchFields), HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
     /**
@@ -150,7 +146,7 @@ public class AccountNewController {
     public ResponseEntity<Object> deleteDraftAccount(@PathVariable int accountId) {
         log.info("Account delete: Controller");
         accountService.deleteDraftAccount(accountId);
-        return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_DELETED, null, LocaleContextHolder.getLocale()));
     }
 
     /**
@@ -161,7 +157,7 @@ public class AccountNewController {
     public ResponseEntity<Object> softDeleteAccount(@PathVariable int accountId) {
         log.info("Account soft delete: Controller");
         accountService.softDeleteAccount(accountId);
-        return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_DELETED, null, LocaleContextHolder.getLocale()));
     }
 
     @GetMapping("accounts/search")
