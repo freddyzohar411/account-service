@@ -34,7 +34,6 @@ import java.util.Map;
 public class AccountController {
 
     private final Logger log = LoggerFactory.getLogger(AccountController.class);
-
     private final AccountServiceImpl accountService;
     private final MessageSource messageSource;
 
