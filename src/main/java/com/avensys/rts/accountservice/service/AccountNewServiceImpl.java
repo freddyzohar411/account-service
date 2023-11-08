@@ -336,6 +336,7 @@ public class AccountNewServiceImpl implements AccountNewService {
                     searchTerm
             );
         }
+
         return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
     }
 

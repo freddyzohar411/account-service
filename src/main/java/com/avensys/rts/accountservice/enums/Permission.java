@@ -5,12 +5,12 @@ package com.avensys.rts.accountservice.enums;
  * This enum is used to specify the permissions
  */
 public enum Permission {
-    ACCOUNT_READ("Account:Read"),
-    ACCOUNT_WRITE("Account:Write"),
-    ACCOUNT_DELETE("Account:Delete"),
-    ACCOUNT_EDIT("Account:Edit"),
+    ACCOUNT_READ("Accounts:Read"),
+    ACCOUNT_WRITE("Accounts:Write"),
+    ACCOUNT_DELETE("Accounts:Delete"),
+    ACCOUNT_EDIT("Accounts:Edit"),
 
-    ACCOUNT_NOACCESS("Account:NoAccess");
+    ACCOUNT_NOACCESS("Accounts:NoAccess");
 
 
 
