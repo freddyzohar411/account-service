@@ -33,7 +33,7 @@ public class AccountNewRequestDTO {
     private String billingAddressPostalCode;
     private String billingCity;
     private String industry;
-    private Integer landlineCountry;
+    private String landlineCountry;
     private Integer landlineNumber;
     private String leadAccountName;
     private String leadSalesName;
@@ -42,7 +42,7 @@ public class AccountNewRequestDTO {
     private Integer noOfEmployees;
     private String parentCompany;
     private Integer revenue;
-    private Integer revenueCurrency;
+    private String revenueCurrency;
     private String salesName;
     private String secondaryOwner;
     private String subIndustry;
