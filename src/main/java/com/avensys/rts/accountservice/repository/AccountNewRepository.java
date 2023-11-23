@@ -1,6 +1,5 @@
 package com.avensys.rts.accountservice.repository;
 
-import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.avensys.rts.accountservice.entity.AccountNewEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

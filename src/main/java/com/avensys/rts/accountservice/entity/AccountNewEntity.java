@@ -39,7 +39,7 @@ public class AccountNewEntity {
 
 	@ManyToOne
 	@JoinColumn(name = "parent_company", referencedColumnName = "id")
-	private AccountEntity parentCompany;
+	private AccountNewEntity parentCompany;
 
 	@Column(name = "is_deleted", columnDefinition = "boolean default false")
 	private Boolean isDeleted;
