@@ -7,11 +7,12 @@ import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
 import com.avensys.rts.accountservice.enums.Permission;
 import com.avensys.rts.accountservice.exception.PermissionDeniedException;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.UserResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.user.ModuleResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.user.RoleResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.user.UserDetailsResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.user.UserGroupResponseDTO;
-import com.avensys.rts.accountservice.payloadresponse.UserResponseDTO;
 import com.avensys.rts.accountservice.util.JwtUtil;
 import com.avensys.rts.accountservice.util.MappingUtil;
 import org.aspectj.lang.annotation.Aspect;
@@ -45,8 +46,6 @@ public class SecurityPermissionAspect {
     public void checkAllPermission(RequiresAllPermissions requiresPermission) {
         System.out.println("RequiresAllPermissions Aspect");
         List<String> requiredPermissions = Arrays.stream(requiresPermission.value()).map(Permission::toString).toList();
-//        requiredPermissions.forEach(System.out::println);
-
         if (!requiredPermissions.isEmpty()) {
             // Logic to get permission from UserAPI Microservice
             Map<String, Set<String>> modulePermissions = mapUserDetailToUserPermissions(getUserDetails());
@@ -65,7 +64,6 @@ public class SecurityPermissionAspect {
 
     /**
      * Check if the user has at least one permission from the required permissions
-     *
      * @param requiresPermission
      */
     @Before("@annotation(requiresPermission)")
@@ -146,13 +144,12 @@ public class SecurityPermissionAspect {
     private Integer getUserId() {
         String email = JwtUtil.getEmailFromContext();
         HttpResponse userResponse = userAPIClient.getUserByEmail(email);
-        UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
+       UserResponseDTO
+                userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
         return userData.getId();
     }
 
     private UserDetailsResponseDTO getUserDetails() {
-//        String email = JwtUtil.getEmailFromContext();
-//        HttpResponse userResponse = userAPIClient.getUserDetailByEmail(email);
         HttpResponse userResponse = userAPIClient.getUserDetail();
         UserDetailsResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserDetailsResponseDTO.class);
         return userData;

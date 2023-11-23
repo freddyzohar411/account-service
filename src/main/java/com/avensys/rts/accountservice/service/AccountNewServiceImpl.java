@@ -6,10 +6,9 @@ import com.avensys.rts.accountservice.entity.AccountNewEntity;
 import com.avensys.rts.accountservice.exception.RequiredDocumentMissingException;
 import com.avensys.rts.accountservice.model.FieldInformation;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountNewRequestDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.CommercialNewRequest;
 import com.avensys.rts.accountservice.payloadnewrequest.FormSubmissionsRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.*;
-import com.avensys.rts.accountservice.payloadrequest.DocumentRequestDTO;
-import com.avensys.rts.accountservice.payloadresponse.*;
 import com.avensys.rts.accountservice.repository.AccountNewRepository;
 import com.avensys.rts.accountservice.util.JwtUtil;
 import com.avensys.rts.accountservice.util.MappingUtil;
@@ -25,21 +24,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class AccountNewServiceImpl implements AccountNewService {
 
     private final String ACTIVE_STATUS = "active";
     private final String ACCOUNT_TYPE = "account_account";
-    private final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
+    private final Logger log = LoggerFactory.getLogger(AccountNewServiceImpl.class);
 
     @Autowired
-    private final AccountNewRepository accountRepository;
-
-    @Autowired
-    private AddressAPIClient addressAPIClient;
+    private AccountNewRepository accountRepository;
 
     @Autowired
     private DocumentAPIClient documentAPIClient;
@@ -55,14 +49,6 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     @Autowired
     private FormSubmissionAPIClient formSubmissionAPIClient;
-
-    public AccountNewServiceImpl(AccountNewRepository accountRepository, AddressAPIClient addressAPIClient, DocumentAPIClient documentAPIClient, UserAPIClient userAPIClient, FormSubmissionAPIClient formSubmissionAPIClient) {
-        this.accountRepository = accountRepository;
-        this.addressAPIClient = addressAPIClient;
-        this.documentAPIClient = documentAPIClient;
-        this.userAPIClient = userAPIClient;
-        this.formSubmissionAPIClient = formSubmissionAPIClient;
-    }
 
     /**
      * Create an account draft
@@ -81,7 +67,7 @@ public class AccountNewServiceImpl implements AccountNewService {
 
         // Save Document to document microservice
         if (accountRequest.getUploadAgreement() != null) {
-            DocumentRequestDTO documentRequestDTO = new DocumentRequestDTO();
+            CommercialNewRequest.DocumentRequestDTO documentRequestDTO = new CommercialNewRequest.DocumentRequestDTO();
             // Save document and tag to account entity
             documentRequestDTO.setEntityId(savedAccountEntity.getId());
             documentRequestDTO.setEntityType(ACCOUNT_TYPE);
@@ -152,7 +138,7 @@ public class AccountNewServiceImpl implements AccountNewService {
 
         // Update document data
         if (accountRequest.getUploadAgreement() != null) {
-            DocumentRequestDTO documentRequestDTO = new DocumentRequestDTO();
+            CommercialNewRequest.DocumentRequestDTO documentRequestDTO = new CommercialNewRequest.DocumentRequestDTO();
             // Save document and tag to account entity
             documentRequestDTO.setEntityId(accountEntity.getId());
             documentRequestDTO.setEntityType(ACCOUNT_TYPE);
@@ -169,7 +155,7 @@ public class AccountNewServiceImpl implements AccountNewService {
     }
 
     @Override
-    public List<AccountNameReponseDTO> getAllAccountsName() {
+    public List<AccountNameResponseDTO> getAllAccountsName() {
         List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false, true);
         return accountEntities.stream().map(this::accountNewEntityToAccountNameResponseDTO).toList();
     }
@@ -452,8 +438,8 @@ public class AccountNewServiceImpl implements AccountNewService {
      * @param accountEntity
      * @return
      */
-    private AccountNameReponseDTO accountNewEntityToAccountNameResponseDTO(AccountNewEntity accountEntity) {
-        AccountNameReponseDTO accountNameReponseDTO = new AccountNameReponseDTO();
+    private AccountNameResponseDTO accountNewEntityToAccountNameResponseDTO(AccountNewEntity accountEntity) {
+        AccountNameResponseDTO accountNameReponseDTO = new AccountNameResponseDTO();
         accountNameReponseDTO.setId(accountEntity.getId());
         accountNameReponseDTO.setName(accountEntity.getName());
         return accountNameReponseDTO;

@@ -1,15 +1,13 @@
 package com.avensys.rts.accountservice.aspect;
 
 import com.avensys.rts.accountservice.APIClient.UserAPIClient;
-import com.avensys.rts.accountservice.annotation.RequiresAllPermissions;
 import com.avensys.rts.accountservice.annotation.RequiresAllRoles;
-import com.avensys.rts.accountservice.annotation.RequiresAnyPermission;
 import com.avensys.rts.accountservice.annotation.RequiresAnyRole;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
-import com.avensys.rts.accountservice.enums.Permission;
 import com.avensys.rts.accountservice.enums.Role;
 import com.avensys.rts.accountservice.exception.PermissionDeniedException;
-import com.avensys.rts.accountservice.payloadresponse.UserResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.UserResponseDTO;
 import com.avensys.rts.accountservice.util.JwtUtil;
 import com.avensys.rts.accountservice.util.MappingUtil;
 import org.aspectj.lang.annotation.Aspect;

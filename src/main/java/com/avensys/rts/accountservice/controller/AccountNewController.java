@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AccountNewController {
 
-    private final Logger log = LoggerFactory.getLogger(AccountController.class);
+    private final Logger log = LoggerFactory.getLogger(AccountNewController.class);
     private final AccountNewServiceImpl accountService;
     private final MessageSource messageSource;
 
