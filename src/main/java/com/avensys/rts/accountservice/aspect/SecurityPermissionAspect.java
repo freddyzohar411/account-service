@@ -7,7 +7,6 @@ import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
 import com.avensys.rts.accountservice.enums.Permission;
 import com.avensys.rts.accountservice.exception.PermissionDeniedException;
-import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.UserResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.user.ModuleResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.user.RoleResponseDTO;
@@ -15,6 +14,7 @@ import com.avensys.rts.accountservice.payloadnewresponse.user.UserDetailsRespons
 import com.avensys.rts.accountservice.payloadnewresponse.user.UserGroupResponseDTO;
 import com.avensys.rts.accountservice.util.JwtUtil;
 import com.avensys.rts.accountservice.util.MappingUtil;
+import com.avensys.rts.accountservice.util.UserUtil;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;

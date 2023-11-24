@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserGroupResponseDTO {
-
+	private Long id;
 	private String groupName;
 	private String groupDescription;
 	private List<RoleResponseDTO> roles;
