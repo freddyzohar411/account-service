@@ -31,5 +31,8 @@ public interface UserAPIClient {
     @GetMapping("/profile")
     HttpResponse getUserDetail();
 
+    @GetMapping("/users-under-manager")
+    HttpResponse getUsersUnderManager();
+
 }
 

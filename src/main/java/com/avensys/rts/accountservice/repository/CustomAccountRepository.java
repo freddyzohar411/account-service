@@ -24,4 +24,19 @@ public interface CustomAccountRepository {
 
 	List<AccountNewEntity> getAllAccountsNameWithSearch(String query, Integer userId, Boolean isDeleted,
 			Boolean isDraft);
+
+	// Check only user id
+	Page<AccountNewEntity>findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean
+			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
+
+	Page<AccountNewEntity>findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean
+			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
+
+	Page<AccountNewEntity>findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds,
+			Boolean isDeleted, Boolean isDraft,Boolean isActive, Pageable pageable,List<String>
+			searchFields, String searchTerm);
+
+	Page<AccountNewEntity>findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds,
+			Boolean isDeleted, Boolean isDraft, Boolean isActive,Pageable pageable,List<String>
+			searchFields, String searchTerm);
 }
