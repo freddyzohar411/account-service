@@ -88,6 +88,7 @@ public class AccountNewServiceImpl implements AccountNewService {
         savedAccountEntity.setAccountSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
 
         savedAccountEntity.setFormSubmissionId(formSubmissionData.getId());
+
         System.out.println("Form Submission Id: " + savedAccountEntity.getFormSubmissionId());
         return accountEntityToAccountResponseDTO(savedAccountEntity);
     }
