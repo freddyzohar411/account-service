@@ -13,6 +13,7 @@ import com.avensys.rts.accountservice.repository.AccountNewRepository;
 import com.avensys.rts.accountservice.util.JwtUtil;
 import com.avensys.rts.accountservice.util.MappingUtil;
 import com.avensys.rts.accountservice.util.StringUtil;
+import com.avensys.rts.accountservice.util.UserUtil;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -49,6 +50,9 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     @Autowired
     private FormSubmissionAPIClient formSubmissionAPIClient;
+
+    @Autowired
+    private UserUtil userUtil;
 
     /**
      * Create an account draft
@@ -88,6 +92,7 @@ public class AccountNewServiceImpl implements AccountNewService {
         savedAccountEntity.setAccountSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
 
         savedAccountEntity.setFormSubmissionId(formSubmissionData.getId());
+
         System.out.println("Form Submission Id: " + savedAccountEntity.getFormSubmissionId());
         return accountEntityToAccountResponseDTO(savedAccountEntity);
     }
@@ -266,16 +271,16 @@ public class AccountNewServiceImpl implements AccountNewService {
         Page<AccountNewEntity> accountEntitiesPage = null;
         // Try with numeric first else try with string (jsonb)
         try {
-            accountEntitiesPage = accountRepository.findAllByOrderByNumeric(
-                    getUserId(),
+            accountEntitiesPage = accountRepository.findAllByOrderByNumericWithUserIds(
+                    userUtil.getUsersIdUnderManager(),
                     false,
                     false,
                     true,
                     pageRequest
             );
         } catch (Exception e) {
-            accountEntitiesPage = accountRepository.findAllByOrderByString(
-                    getUserId(),
+            accountEntitiesPage = accountRepository.findAllByOrderByStringWithUserIds(
+                    userUtil.getUsersIdUnderManager(),
                     false,
                     false,
                     true,
@@ -302,8 +307,8 @@ public class AccountNewServiceImpl implements AccountNewService {
         Page<AccountNewEntity> accountEntitiesPage = null;
         // Try with numeric first else try with string (jsonb)
         try {
-            accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumeric(
-                    getUserId(),
+            accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumericWithUserIds(
+                    userUtil.getUsersIdUnderManager(),
                     false,
                     false,
                     true,
@@ -312,8 +317,8 @@ public class AccountNewServiceImpl implements AccountNewService {
                     searchTerm
             );
         } catch (Exception e) {
-            accountEntitiesPage = accountRepository.findAllByOrderByAndSearchString(
-                    getUserId(),
+            accountEntitiesPage = accountRepository.findAllByOrderByAndSearchStringWithUserIds(
+                    userUtil.getUsersIdUnderManager(),
                     false,
                     false,
                     true,
