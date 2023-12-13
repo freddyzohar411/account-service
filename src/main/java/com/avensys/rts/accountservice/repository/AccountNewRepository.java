@@ -23,6 +23,11 @@ public interface AccountNewRepository extends JpaRepository<AccountNewEntity, In
     @Query(value = "SELECT a FROM accountNew a WHERE a.createdBy = ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
     List<AccountNewEntity> findAllByUserAndDeleted(Integer createdBy, boolean isDeleted, boolean isActive);
 
+    @Query(value = "SELECT a FROM accountNew a WHERE a.createdBy IN (?1) AND a.isDeleted = ?2 AND a.isActive = ?3")
+    List<AccountNewEntity> findAllByUserIdsAndDeleted(List<Long> createdByList, boolean isDeleted, boolean isActive);
+
     @Query(value = "SELECT a FROM accountNew a WHERE a.id = ?1 AND a.isDraft = ?2 AND a.isActive = ?3")
     Optional<AccountNewEntity> findByIdAndDraft(Integer id, boolean draft, boolean isActive);
+
+
 }

@@ -228,7 +228,12 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     @Override
     public Set<FieldInformation> getAllAccountsFieldsNew() {
-        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false, true);
+//        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false, true);
+//        if (accountEntities.isEmpty()) {
+//            return null;
+//        }
+
+        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
         if (accountEntities.isEmpty()) {
             return null;
         }
