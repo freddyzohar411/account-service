@@ -26,6 +26,8 @@ public interface AccountNewService {
      */
     List<AccountNameResponseDTO> getAllAccountsName();
 
+    List<AccountNameResponseDTO> getAllAccountsNameAll();
+
     List<Map<String, String>> getAllAccountsFields();
 
     Set<FieldInformation> getAllAccountsFieldsNew();

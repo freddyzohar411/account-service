@@ -92,14 +92,23 @@ public class AccountNewController {
     }
 
     /**
-     * Get all accounts with id and names
+     * Get all accounts with id and names (For user)
      * @return
      */
-//    @RequiresAllPermissions({Permission.ACCOUNT_READ})
     @GetMapping("/accounts/names")
     public ResponseEntity<Object> getAllAccountsName() {
         log.info("Account get all name: Controller");
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsName(), HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
+    /**
+     * Get all accounts with id and names (All)
+     * @return
+     */
+    @GetMapping("/accounts/names-all")
+    public ResponseEntity<Object> getAllAccountsNameAll() {
+        log.info("Account get all name: Controller");
+        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsNameAll(), HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
     /**
