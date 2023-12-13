@@ -161,7 +161,13 @@ public class AccountNewServiceImpl implements AccountNewService {
 
     @Override
     public List<AccountNameResponseDTO> getAllAccountsName() {
-        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false, true);
+        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDraftAndDeleted(getUserId(), false, false, true);
+        return accountEntities.stream().map(this::accountNewEntityToAccountNameResponseDTO).toList();
+    }
+
+    @Override
+    public List<AccountNameResponseDTO> getAllAccountsNameAll() {
+        List<AccountNewEntity> accountEntities = accountRepository.findAllByIsDraftAndIsDeletedAndIsActive(false, false, true);
         return accountEntities.stream().map(this::accountNewEntityToAccountNameResponseDTO).toList();
     }
 
