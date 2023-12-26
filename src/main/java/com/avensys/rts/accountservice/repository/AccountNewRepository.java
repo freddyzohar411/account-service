@@ -29,5 +29,4 @@ public interface AccountNewRepository extends JpaRepository<AccountNewEntity, In
     @Query(value = "SELECT a FROM accountNew a WHERE a.id = ?1 AND a.isDraft = ?2 AND a.isActive = ?3")
     Optional<AccountNewEntity> findByIdAndDraft(Integer id, boolean draft, boolean isActive);
 
-
 }
