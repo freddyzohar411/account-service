@@ -200,4 +200,10 @@ public class AccountNewController {
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsNameWithSearch(query), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
+    @GetMapping("accounts/{accountId}/data")
+    public ResponseEntity<Object> getAccountByIdData(@PathVariable Integer accountId) {
+        log.info("Account get by id data: Controller");
+        return ResponseUtil.generateSuccessResponse(accountService.getAccountByIdData(accountId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
 }

@@ -419,6 +419,14 @@ public class AccountNewServiceImpl implements AccountNewService {
         return accountEntities;
     }
 
+    @Override
+    public AccountNewListingDataDTO getAccountByIdData(Integer accountId) {
+        return accountEntityToAccountNewListingDataDTO(accountRepository.findByIdAndDeleted(accountId, false, true).orElseThrow(
+                () -> new RuntimeException("Account not found")
+        ));
+
+    }
+
     /**
      * Page to account listing new response
      */
@@ -445,6 +453,18 @@ public class AccountNewServiceImpl implements AccountNewService {
 
         accountListingResponseDTO.setAccounts(accountNewListingDataDTOS);
         return accountListingResponseDTO;
+    }
+
+    private AccountNewListingDataDTO accountEntityToAccountNewListingDataDTO(AccountNewEntity accountNewEntity) {
+                    AccountNewListingDataDTO accountNewListingDataDTO = new AccountNewListingDataDTO(accountNewEntity);
+                    // Get created by User data from user microservice
+                    HttpResponse createUserResponse = userAPIClient.getUserById(accountNewEntity.getCreatedBy());
+                    UserResponseDTO createUserData = MappingUtil.mapClientBodyToClass(createUserResponse.getData(), UserResponseDTO.class);
+                    accountNewListingDataDTO.setCreatedByName(createUserData.getFirstName() + " " + createUserData.getLastName());
+                    HttpResponse updateUserResponse = userAPIClient.getUserById(accountNewEntity.getUpdatedBy());
+                    UserResponseDTO updateUserData = MappingUtil.mapClientBodyToClass(updateUserResponse.getData(), UserResponseDTO.class);
+                    accountNewListingDataDTO.setUpdatedByName(updateUserData.getFirstName() + " " + updateUserData.getLastName());
+        return accountNewListingDataDTO;
     }
 
 

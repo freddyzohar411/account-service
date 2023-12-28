@@ -5,6 +5,7 @@ import com.avensys.rts.accountservice.model.FieldInformation;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountNewRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingNewResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNameResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountNewListingDataDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
 
 import java.util.List;
@@ -44,6 +45,6 @@ public interface AccountNewService {
 
     List<AccountNewEntity> getAllAccountsByUser(boolean draft, boolean deleted);
 
-
+    AccountNewListingDataDTO getAccountByIdData(Integer accountId);
 
 }
