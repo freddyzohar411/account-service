@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * This class is an interface to interact with document microservice
  */
 @Configuration
-@FeignClient(name = "document-service", url = "http://localhost:8500", configuration = JwtTokenInterceptor.class)
+@FeignClient(name = "document-service", url = "${api.document.url}", configuration = JwtTokenInterceptor.class)
 public interface DocumentAPIClient {
     @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     HttpResponse createDocument(@ModelAttribute CommercialRequest.DocumentRequestDTO documentRequest);
