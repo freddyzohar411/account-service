@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommercialNewRequest {
+public class CommercialRequest {
     private String msp;
     private String markUp;
     private String entityType;

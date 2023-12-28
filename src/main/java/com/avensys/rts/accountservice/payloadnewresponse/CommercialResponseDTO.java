@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommercialNewResponseDTO {
+public class CommercialResponseDTO {
     private Integer id;
     private String msp;
     private String markUp;

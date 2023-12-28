@@ -4,9 +4,9 @@ import com.avensys.rts.accountservice.annotation.RequiresAllPermissions;
 import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.enums.Permission;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountListingRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountNewRequestDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
-import com.avensys.rts.accountservice.service.AccountNewServiceImpl;
+import com.avensys.rts.accountservice.service.AccountServiceImpl;
 import com.avensys.rts.accountservice.util.ResponseUtil;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -28,13 +28,13 @@ import java.util.regex.Pattern;
  */
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-public class AccountNewController {
+public class AccountController {
 
-    private final Logger log = LoggerFactory.getLogger(AccountNewController.class);
-    private final AccountNewServiceImpl accountService;
+    private final Logger log = LoggerFactory.getLogger(AccountController.class);
+    private final AccountServiceImpl accountService;
     private final MessageSource messageSource;
 
-    public AccountNewController(AccountNewServiceImpl accountService, MessageSource messageSource) {
+    public AccountController(AccountServiceImpl accountService, MessageSource messageSource) {
         this.accountService = accountService;
         this.messageSource = messageSource;
     }
@@ -46,7 +46,7 @@ public class AccountNewController {
      */
     @RequiresAllPermissions({Permission.ACCOUNT_WRITE})
     @PostMapping("/accounts")
-    public ResponseEntity<Object> addAccount(@Valid @ModelAttribute AccountNewRequestDTO accountRequest) {
+    public ResponseEntity<Object> addAccount(@Valid @ModelAttribute AccountRequestDTO accountRequest) {
         log.info("Account create: Controller");
         AccountNewResponseDTO account = accountService.createAccount(accountRequest);
         return ResponseUtil.generateSuccessResponse(account, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.ACCOUNT_CREATED, null, LocaleContextHolder.getLocale()));
@@ -85,7 +85,7 @@ public class AccountNewController {
      */
     @RequiresAllPermissions({Permission.ACCOUNT_EDIT})
     @PutMapping("/accounts/{accountId}")
-    public ResponseEntity<Object> updateAccount(@PathVariable int accountId, @ModelAttribute AccountNewRequestDTO accountRequest) {
+    public ResponseEntity<Object> updateAccount(@PathVariable int accountId, @ModelAttribute AccountRequestDTO accountRequest) {
         log.info("Account update: Controller");
         AccountNewResponseDTO account = accountService.updateAccount(accountId, accountRequest);
         return ResponseUtil.generateSuccessResponse(account, HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_UPDATED, null, LocaleContextHolder.getLocale()));

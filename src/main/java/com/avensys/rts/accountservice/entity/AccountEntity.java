@@ -16,12 +16,12 @@ import java.time.LocalDateTime;
  * Author: Koh He Xiang This is the entity class for the new account table in
  * the database that works with dynamic form
  */
-@Entity(name = "accountNew")
-@Table(name = "account_new")
+@Entity(name = "account")
+@Table(name = "account")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountNewEntity {
+public class AccountEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,7 +39,7 @@ public class AccountNewEntity {
 
 	@ManyToOne
 	@JoinColumn(name = "parent_company", referencedColumnName = "id")
-	private AccountNewEntity parentCompany;
+	private AccountEntity parentCompany;
 
 	@Column(name = "is_deleted", columnDefinition = "boolean default false")
 	private Boolean isDeleted;

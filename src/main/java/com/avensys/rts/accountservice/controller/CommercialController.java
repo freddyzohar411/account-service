@@ -1,8 +1,8 @@
 package com.avensys.rts.accountservice.controller;
 
 import com.avensys.rts.accountservice.constant.MessageConstants;
-import com.avensys.rts.accountservice.payloadnewrequest.CommercialNewRequest;
-import com.avensys.rts.accountservice.payloadnewresponse.CommercialNewResponseDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.CommercialRequest;
+import com.avensys.rts.accountservice.payloadnewresponse.CommercialResponseDTO;
 import com.avensys.rts.accountservice.service.CommercialServiceImpl;
 import com.avensys.rts.accountservice.util.ResponseUtil;
 import org.slf4j.Logger;
@@ -37,9 +37,9 @@ public class CommercialController {
      * @return
      */
     @PostMapping("/commercials/{accountId}")
-    public ResponseEntity<Object> addCommercial(@PathVariable int accountId, @RequestBody CommercialNewRequest commercialRequest) {
+    public ResponseEntity<Object> addCommercial(@PathVariable int accountId, @RequestBody CommercialRequest commercialRequest) {
         log.info("Account create: Controller");
-        CommercialNewResponseDTO commercialNewResponse = commercialService.createCommercial(accountId, commercialRequest);
+        CommercialResponseDTO commercialNewResponse = commercialService.createCommercial(accountId, commercialRequest);
         return ResponseUtil.generateSuccessResponse(commercialNewResponse, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
     }
 
@@ -50,9 +50,9 @@ public class CommercialController {
      * @return
      */
     @PutMapping("/commercials/{accountId}")
-    public ResponseEntity<Object> updateCommercial(@PathVariable int accountId, @RequestBody CommercialNewRequest commercialRequest) {
+    public ResponseEntity<Object> updateCommercial(@PathVariable int accountId, @RequestBody CommercialRequest commercialRequest) {
         log.info("Account create: Controller");
-        CommercialNewResponseDTO commercialNewResponse = commercialService.updateCommercial(accountId, commercialRequest);
+        CommercialResponseDTO commercialNewResponse = commercialService.updateCommercial(accountId, commercialRequest);
         return ResponseUtil.generateSuccessResponse(commercialNewResponse, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
     }
 
@@ -64,7 +64,7 @@ public class CommercialController {
     @GetMapping("/commercials/{accountId}")
     public ResponseEntity<Object> getCommercial(@PathVariable int accountId) {
         log.info("Account get: Controller");
-        CommercialNewResponseDTO commercialNewResponse = commercialService.getCommercial(accountId);
+        CommercialResponseDTO commercialNewResponse = commercialService.getCommercial(accountId);
         return ResponseUtil.generateSuccessResponse(commercialNewResponse, HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 }
