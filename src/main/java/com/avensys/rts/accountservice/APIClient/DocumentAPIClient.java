@@ -16,18 +16,18 @@ import org.springframework.web.bind.annotation.*;
 @Configuration
 @FeignClient(name = "document-service", url = "${api.document.url}", configuration = JwtTokenInterceptor.class)
 public interface DocumentAPIClient {
-    @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     HttpResponse createDocument(@ModelAttribute CommercialRequest.DocumentRequestDTO documentRequest);
 
-    @PutMapping(value = "/documents" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     HttpResponse updateDocument(@ModelAttribute CommercialRequest.DocumentRequestDTO documentRequest);
 
-    @DeleteMapping("/documents")
+    @DeleteMapping("")
     HttpResponse deleteDocumentByEntityIdAndType(@RequestBody CommercialRequest.DocumentDeleteRequestDTO documentDeleteRequestDTO);
 
-    @GetMapping("/documents")
+    @GetMapping("")
     HttpResponse getDocumentByEntityTypeAndId(@RequestParam String entityType, @RequestParam int entityId);
 
-    @DeleteMapping("/documents/entity/{entityType}/{entityId}")
+    @DeleteMapping("/entity/{entityType}/{entityId}")
     HttpResponse deleteDocumentsByEntityTypeAndEntityId(@PathVariable String entityType, @PathVariable Integer entityId);
 }
