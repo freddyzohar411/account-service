@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "contact-service", url = "http://localhost:8700", configuration = JwtTokenInterceptor.class)
+@FeignClient(name = "contact-service", url = "${api.contact.url}", configuration = JwtTokenInterceptor.class)
 public interface ContactAPIClient {
 
     @DeleteMapping("/contacts/entity/{entityType}/{entityId}")

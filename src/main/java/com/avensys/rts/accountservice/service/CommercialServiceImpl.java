@@ -3,14 +3,13 @@ package com.avensys.rts.accountservice.service;
 import com.avensys.rts.accountservice.APIClient.FormSubmissionAPIClient;
 import com.avensys.rts.accountservice.APIClient.UserAPIClient;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
-import com.avensys.rts.accountservice.entity.AccountNewEntity;
-import com.avensys.rts.accountservice.payloadnewrequest.CommercialNewRequest;
+import com.avensys.rts.accountservice.entity.AccountEntity;
+import com.avensys.rts.accountservice.payloadnewrequest.CommercialRequest;
 import com.avensys.rts.accountservice.payloadnewrequest.FormSubmissionsRequestDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.CommercialNewResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.CommercialResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.FormSubmissionsResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.UserResponseDTO;
-import com.avensys.rts.accountservice.repository.AccountNewRepository;
+import com.avensys.rts.accountservice.repository.AccountRepository;
 import com.avensys.rts.accountservice.util.JwtUtil;
 import com.avensys.rts.accountservice.util.MappingUtil;
 import jakarta.transaction.Transactional;
@@ -22,7 +21,7 @@ import java.util.Optional;
 @Service
 public class CommercialServiceImpl implements CommercialService{
 
-    private final AccountNewRepository accountRepository;
+    private final AccountRepository accountRepository;
 
     @Autowired
     private FormSubmissionAPIClient formSubmissionAPIClient;
@@ -30,21 +29,22 @@ public class CommercialServiceImpl implements CommercialService{
     @Autowired
     private UserAPIClient userAPIClient;
 
-    public CommercialServiceImpl(AccountNewRepository accountRepository) {
+    public CommercialServiceImpl(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
     }
 
     @Override
     @Transactional
-    public CommercialNewResponseDTO createCommercial(Integer id, CommercialNewRequest commercialNewRequest) {
-        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(id, false, true)
+    public CommercialResponseDTO createCommercial(Integer id, CommercialRequest commercialRequest) {
+        AccountEntity accountEntityFound = accountRepository.findByIdAndDeleted(id, false, true)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        accountEntityFound.setMarkUp(commercialNewRequest.getMarkUp());
-        accountEntityFound.setMsp(commercialNewRequest.getMsp());
-        accountEntityFound.setCommercialFormId(commercialNewRequest.getFormId());
+        accountEntityFound.setMarkUp(commercialRequest.getMarkUp());
+        accountEntityFound.setMsp(commercialRequest.getMsp());
+        accountEntityFound.setCommercialFormId(commercialRequest.getFormId());
 
         // Save form data to form submission microservice
-        FormSubmissionsRequestDTO formSubmissionsRequestDTO = commercialRequestToFormSubmissionRequestDTO(commercialNewRequest);
+        FormSubmissionsRequestDTO formSubmissionsRequestDTO = commercialRequestToFormSubmissionRequestDTO(
+                commercialRequest);
         HttpResponse formSubmissionResponse = formSubmissionAPIClient.addFormSubmission(formSubmissionsRequestDTO);
         FormSubmissionsResponseDTO formSubmissionData = MappingUtil.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
 
@@ -57,8 +57,8 @@ public class CommercialServiceImpl implements CommercialService{
     }
 
     @Override
-    public CommercialNewResponseDTO getCommercial(Integer id) {
-        Optional<AccountNewEntity> accountEntity = accountRepository.findByIdAndDeleted(id, false, true);
+    public CommercialResponseDTO getCommercial(Integer id) {
+        Optional<AccountEntity> accountEntity = accountRepository.findByIdAndDeleted(id, false, true);
         if (accountEntity.isPresent()) {
             return commercialEntityToCommercialNewResponseDTO(accountEntity.get());
         }
@@ -66,15 +66,16 @@ public class CommercialServiceImpl implements CommercialService{
     }
 
     @Override
-    public CommercialNewResponseDTO updateCommercial(Integer id, CommercialNewRequest commercialNewRequest) {
-        AccountNewEntity accountEntityFound = accountRepository.findByIdAndDeleted(id, false, true)
+    public CommercialResponseDTO updateCommercial(Integer id, CommercialRequest commercialRequest) {
+        AccountEntity accountEntityFound = accountRepository.findByIdAndDeleted(id, false, true)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        accountEntityFound.setMarkUp(commercialNewRequest.getMarkUp());
-        accountEntityFound.setMsp(commercialNewRequest.getMsp());
-        accountEntityFound.setCommercialFormId(commercialNewRequest.getFormId());
+        accountEntityFound.setMarkUp(commercialRequest.getMarkUp());
+        accountEntityFound.setMsp(commercialRequest.getMsp());
+        accountEntityFound.setCommercialFormId(commercialRequest.getFormId());
 
         // Update form data to form submission microservice
-        FormSubmissionsRequestDTO formSubmissionsRequestDTO = commercialRequestToFormSubmissionRequestDTO(commercialNewRequest);
+        FormSubmissionsRequestDTO formSubmissionsRequestDTO = commercialRequestToFormSubmissionRequestDTO(
+                commercialRequest);
         HttpResponse formSubmissionResponse = formSubmissionAPIClient.updateFormSubmission(accountEntityFound.getCommercialFormSubmissionId(), formSubmissionsRequestDTO);
         FormSubmissionsResponseDTO formSubmissionData = MappingUtil.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
 
@@ -86,8 +87,8 @@ public class CommercialServiceImpl implements CommercialService{
         return commercialEntityToCommercialNewResponseDTO(accountRepository.save(accountEntityFound));
     }
 
-    private CommercialNewResponseDTO commercialEntityToCommercialNewResponseDTO(AccountNewEntity accountEntity) {
-        CommercialNewResponseDTO commercialNewResponseDTO = new CommercialNewResponseDTO();
+    private CommercialResponseDTO commercialEntityToCommercialNewResponseDTO(AccountEntity accountEntity) {
+        CommercialResponseDTO commercialNewResponseDTO = new CommercialResponseDTO();
         commercialNewResponseDTO.setId(accountEntity.getId());
         commercialNewResponseDTO.setMsp(accountEntity.getMsp());
         commercialNewResponseDTO.setMarkUp(accountEntity.getMarkUp());
@@ -103,13 +104,13 @@ public class CommercialServiceImpl implements CommercialService{
         return commercialNewResponseDTO;
     }
 
-    private FormSubmissionsRequestDTO commercialRequestToFormSubmissionRequestDTO(CommercialNewRequest commercialNewRequest) {
+    private FormSubmissionsRequestDTO commercialRequestToFormSubmissionRequestDTO(CommercialRequest commercialRequest) {
         FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
         formSubmissionsRequestDTO.setUserId(getUserId());
-        formSubmissionsRequestDTO.setFormId(commercialNewRequest.getFormId());
-        formSubmissionsRequestDTO.setSubmissionData(MappingUtil.convertJSONStringToJsonNode(commercialNewRequest.getFormData()));
-        formSubmissionsRequestDTO.setEntityId(commercialNewRequest.getEntityId());
-        formSubmissionsRequestDTO.setEntityType(commercialNewRequest.getEntityType());
+        formSubmissionsRequestDTO.setFormId(commercialRequest.getFormId());
+        formSubmissionsRequestDTO.setSubmissionData(MappingUtil.convertJSONStringToJsonNode(commercialRequest.getFormData()));
+        formSubmissionsRequestDTO.setEntityId(commercialRequest.getEntityId());
+        formSubmissionsRequestDTO.setEntityType(commercialRequest.getEntityType());
         return formSubmissionsRequestDTO;
     }
 

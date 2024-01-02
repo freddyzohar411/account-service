@@ -1,12 +1,12 @@
 package com.avensys.rts.accountservice.service;
 
-import com.avensys.rts.accountservice.payloadnewrequest.CommercialNewRequest;
-import com.avensys.rts.accountservice.payloadnewresponse.CommercialNewResponseDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.CommercialRequest;
+import com.avensys.rts.accountservice.payloadnewresponse.CommercialResponseDTO;
 
 public interface CommercialService {
-    CommercialNewResponseDTO createCommercial(Integer id, CommercialNewRequest commercialNewRequest);
+    CommercialResponseDTO createCommercial(Integer id, CommercialRequest commercialRequest);
 
-    CommercialNewResponseDTO getCommercial(Integer id);
+    CommercialResponseDTO getCommercial(Integer id);
 
-    CommercialNewResponseDTO updateCommercial(Integer id, CommercialNewRequest commercialNewRequest);
+    CommercialResponseDTO updateCommercial(Integer id, CommercialRequest commercialRequest);
 }
