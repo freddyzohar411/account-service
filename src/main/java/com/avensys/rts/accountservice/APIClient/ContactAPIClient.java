@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "contact-service", url = "${api.contact.url}", configuration = JwtTokenInterceptor.class)
 public interface ContactAPIClient {
 
-    @DeleteMapping("/contacts/entity/{entityType}/{entityId}")
+    @DeleteMapping("/entity/{entityType}/{entityId}")
     HttpResponse deleteContactsByEntityTypeAndEntityId(@PathVariable String entityType, @PathVariable Integer entityId);
 
 }

@@ -12,6 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "instruction-service", url = "${api.instruction.url}", configuration = JwtTokenInterceptor.class)
 public interface InstructionAPIClient {
 
-    @DeleteMapping(value = "/instructions/entity/{entityType}/{entityId}")
+    @DeleteMapping(value = "/entity/{entityType}/{entityId}")
     HttpResponse deleteInstructionByEntityId(@PathVariable String entityType, @PathVariable int entityId);
 }
