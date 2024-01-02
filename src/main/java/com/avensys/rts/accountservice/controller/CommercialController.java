@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
+@RequestMapping("/api/commercials")
 public class CommercialController {
 
     private final Logger log = LoggerFactory.getLogger(CommercialController.class);
@@ -36,7 +37,7 @@ public class CommercialController {
      * @param commercialRequest
      * @return
      */
-    @PostMapping("/commercials/{accountId}")
+    @PostMapping("/{accountId}")
     public ResponseEntity<Object> addCommercial(@PathVariable int accountId, @RequestBody CommercialRequest commercialRequest) {
         log.info("Account create: Controller");
         CommercialResponseDTO commercialNewResponse = commercialService.createCommercial(accountId, commercialRequest);
@@ -49,7 +50,7 @@ public class CommercialController {
      * @param commercialRequest
      * @return
      */
-    @PutMapping("/commercials/{accountId}")
+    @PutMapping("/{accountId}")
     public ResponseEntity<Object> updateCommercial(@PathVariable int accountId, @RequestBody CommercialRequest commercialRequest) {
         log.info("Account create: Controller");
         CommercialResponseDTO commercialNewResponse = commercialService.updateCommercial(accountId, commercialRequest);
@@ -61,7 +62,7 @@ public class CommercialController {
      * @param accountId
      * @return
      */
-    @GetMapping("/commercials/{accountId}")
+    @GetMapping("/{accountId}")
     public ResponseEntity<Object> getCommercial(@PathVariable int accountId) {
         log.info("Account get: Controller");
         CommercialResponseDTO commercialNewResponse = commercialService.getCommercial(accountId);
