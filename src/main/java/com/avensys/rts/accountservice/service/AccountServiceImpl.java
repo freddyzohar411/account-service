@@ -424,7 +424,6 @@ public class AccountServiceImpl implements AccountService {
         return accountEntityToAccountNewListingDataDTO(accountRepository.findByIdAndDeleted(accountId, false, true).orElseThrow(
                 () -> new RuntimeException("Account not found")
         ));
-
     }
 
     /**

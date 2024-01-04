@@ -46,7 +46,7 @@ public class AccountController {
      * @return
      */
     @RequiresAllPermissions({Permission.ACCOUNT_WRITE})
-    @PostMapping("")
+    @PostMapping("/add")
     public ResponseEntity<Object> addAccount(@Valid @ModelAttribute AccountRequestDTO accountRequest) {
         log.info("Account create: Controller");
         AccountNewResponseDTO account = accountService.createAccount(accountRequest);
