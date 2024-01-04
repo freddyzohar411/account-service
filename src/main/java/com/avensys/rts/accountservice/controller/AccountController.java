@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  */
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-@RequestMapping("/api/accounts")
+@RequestMapping("/api/accounts/")
 public class AccountController {
 
     private final Logger log = LoggerFactory.getLogger(AccountController.class);
@@ -59,7 +59,7 @@ public class AccountController {
      * @return
      */
     @RequiresAllPermissions({Permission.ACCOUNT_READ})
-    @GetMapping("/{accountId}")
+    @GetMapping("{accountId}")
     public ResponseEntity<Object> getAccount(@PathVariable int accountId) {
         log.info("Account get: Controller");
         AccountNewResponseDTO account = accountService.getAccount(accountId);
@@ -71,7 +71,7 @@ public class AccountController {
      * @return
      */
     @RequiresAllPermissions({Permission.ACCOUNT_WRITE})
-    @GetMapping("/draft")
+    @GetMapping("draft")
     public ResponseEntity<Object> getAccountIfDraft() {
         log.info("Account get: Controller");
         AccountNewResponseDTO account = accountService.getAccountIfDraft();
@@ -85,7 +85,7 @@ public class AccountController {
      * @return
      */
     @RequiresAllPermissions({Permission.ACCOUNT_EDIT})
-    @PutMapping("/{accountId}")
+    @PutMapping("{accountId}")
     public ResponseEntity<Object> updateAccount(@PathVariable int accountId, @ModelAttribute AccountRequestDTO accountRequest) {
         log.info("Account update: Controller");
         AccountNewResponseDTO account = accountService.updateAccount(accountId, accountRequest);
@@ -106,7 +106,7 @@ public class AccountController {
      * Get all accounts with id and names (All)
      * @return
      */
-    @GetMapping("/names-all")
+    @GetMapping("names-all")
     public ResponseEntity<Object> getAllAccountsNameAll() {
         log.info("Account get all name: Controller");
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsNameAll(), HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
@@ -116,7 +116,7 @@ public class AccountController {
      * Get all accounts field for all forms related to accounts
      * @return
      */
-    @GetMapping("/fields")
+    @GetMapping("fields")
     public ResponseEntity<Object> getAllAccountsFields() {
         log.info("Account get all fields: Controller");
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsNew(), HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
@@ -130,7 +130,7 @@ public class AccountController {
      * @return
      */
     @RequiresAllPermissions({Permission.ACCOUNT_READ})
-    @PostMapping("/listing")
+    @PostMapping("listing")
     public ResponseEntity<Object> getAccountListing(@RequestBody AccountListingRequestDTO accountListingRequestDTO) {
         log.info("Account get all fields: Controller");
         Integer page = accountListingRequestDTO.getPage();
@@ -152,7 +152,7 @@ public class AccountController {
      * @return
      */
     @RequiresAllPermissions({Permission.ACCOUNT_WRITE})
-    @DeleteMapping("/draft/{accountId}")
+    @DeleteMapping("draft/{accountId}")
     public ResponseEntity<Object> deleteDraftAccount(@PathVariable int accountId) {
         log.info("Account delete: Controller");
         accountService.deleteDraftAccount(accountId);
@@ -163,14 +163,14 @@ public class AccountController {
      * Soft delete existing account
      */
     @RequiresAllPermissions({Permission.ACCOUNT_DELETE})
-    @DeleteMapping("/{accountId}")
+    @DeleteMapping("{accountId}")
     public ResponseEntity<Object> softDeleteAccount(@PathVariable int accountId) {
         log.info("Account soft delete: Controller");
         accountService.softDeleteAccount(accountId);
         return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_DELETED, null, LocaleContextHolder.getLocale()));
     }
 
-    @GetMapping("/search")
+    @GetMapping("search")
     public ResponseEntity<Object> searchAccount(@RequestParam(
             value = "query",
             required = false
@@ -201,7 +201,7 @@ public class AccountController {
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsNameWithSearch(query), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
-    @GetMapping("/{accountId}/data")
+    @GetMapping("{accountId}/data")
     public ResponseEntity<Object> getAccountByIdData(@PathVariable Integer accountId) {
         log.info("Account get by id data: Controller");
         return ResponseUtil.generateSuccessResponse(accountService.getAccountByIdData(accountId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
