@@ -37,7 +37,7 @@ public class CommercialController {
      * @param commercialRequest
      * @return
      */
-    @PostMapping("/{accountId}")
+    @PostMapping("/{accountId}/add")
     public ResponseEntity<Object> addCommercial(@PathVariable int accountId, @RequestBody CommercialRequest commercialRequest) {
         log.info("Account create: Controller");
         CommercialResponseDTO commercialNewResponse = commercialService.createCommercial(accountId, commercialRequest);
