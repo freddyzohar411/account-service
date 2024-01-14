@@ -207,4 +207,16 @@ public class AccountController {
         return ResponseUtil.generateSuccessResponse(accountService.getAccountByIdData(accountId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
+    @GetMapping("/{accountId}/data/all")
+    public ResponseEntity<Object> getAccountByIdDataAll(@PathVariable Integer accountId) {
+        log.info("Account get by id data: Controller");
+        return ResponseUtil.generateSuccessResponse(accountService.getAccountByIdDataAll(accountId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
+    @GetMapping("/{accountId}/fields/all")
+    public ResponseEntity<Object> getAllAccountsFieldsAll(@PathVariable Integer accountId) {
+        log.info("Account get by id data: Controller");
+        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsAll(accountId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
 }

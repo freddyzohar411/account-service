@@ -23,4 +23,8 @@ public interface FormSubmissionAPIClient {
     @DeleteMapping("/{formSubmissionId}")
     HttpResponse deleteFormSubmission(@PathVariable int formSubmissionId);
 
+    @GetMapping("/entity/{entityName}/names")
+    HttpResponse getFormFieldNameList(@PathVariable String entityName);
+
+
 }
