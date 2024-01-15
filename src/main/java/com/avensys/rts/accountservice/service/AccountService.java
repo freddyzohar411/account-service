@@ -45,7 +45,7 @@ public interface AccountService {
 
     AccountListingDataDTO getAccountByIdData(Integer accountId);
 
-    HashMap<String, List<HashMap<String, String>>> getAllAccountsFieldsAll(Integer accountId);
+    HashMap<String, List<HashMap<String, String>>> getAllAccountsFieldsAll();
 
     HashMap<String, Object> getAccountByIdDataAll(Integer candidateId);
 

@@ -213,10 +213,10 @@ public class AccountController {
         return ResponseUtil.generateSuccessResponse(accountService.getAccountByIdDataAll(accountId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
-    @GetMapping("/{accountId}/fields/all")
-    public ResponseEntity<Object> getAllAccountsFieldsAll(@PathVariable Integer accountId) {
+    @GetMapping("/fields/all")
+    public ResponseEntity<Object> getAllAccountsFieldsAll() {
         log.info("Account get by id data: Controller");
-        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsAll(accountId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsAll(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
 }

@@ -437,11 +437,11 @@ public class AccountServiceImpl implements AccountService {
 	 * @return
 	 */
 	@Override
-	public HashMap<String, List<HashMap<String, String>>> getAllAccountsFieldsAll(Integer accountId) {
+	public HashMap<String, List<HashMap<String, String>>> getAllAccountsFieldsAll() {
 		HashMap<String, List<HashMap<String, String>>> allFields = new HashMap<>();
 
 		// Get account fields from account microservice
-		List<HashMap<String, String>> accountFields = getAccountFields(accountId);
+		List<HashMap<String, String>> accountFields = getAccountFields();
 		allFields.put("accountInfo", accountFields);
 
 		// Get contact fields from contact microservice
@@ -496,10 +496,8 @@ public class AccountServiceImpl implements AccountService {
 				.mergeJsonNodes(List.of(accountSubmissionData, commercialSubmissionData, accountExtraDataJsonNode));
 	}
 
-	private List<HashMap<String, String>> getAccountFields(Integer accountId) {
-		AccountEntity accountEntity = accountRepository.findByIdAndDeleted(accountId, false, true)
-				.orElseThrow(() -> new RuntimeException("Account not found"));
-		AccountExtraData accountExtraData = getAccountExtraData(accountEntity);
+	private List<HashMap<String, String>> getAccountFields() {
+		AccountExtraData accountExtraData = new AccountExtraData();
 
 		// Get account dynamic fields from form service
 		HttpResponse accountFormFieldResponse = formSubmissionAPIClient.getFormFieldNameList("account_account");
