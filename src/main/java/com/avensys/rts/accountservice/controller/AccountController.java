@@ -201,10 +201,36 @@ public class AccountController {
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsNameWithSearch(query), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
+    /**
+     * Get account data (Only account info)
+     * @param accountId
+     * @return
+     */
     @GetMapping("/{accountId}/data")
     public ResponseEntity<Object> getAccountByIdData(@PathVariable Integer accountId) {
         log.info("Account get by id data: Controller");
         return ResponseUtil.generateSuccessResponse(accountService.getAccountByIdData(accountId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
+    /**
+     * Get all account data inlcuding all related microservices
+     * @param accountId
+     * @return
+     */
+    @GetMapping("/{accountId}/data/all")
+    public ResponseEntity<Object> getAccountByIdDataAll(@PathVariable Integer accountId) {
+        log.info("Account get by id data: Controller");
+        return ResponseUtil.generateSuccessResponse(accountService.getAccountByIdDataAll(accountId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
+    /**
+     * Get all account fields for including all related microservices
+     * @return
+     */
+    @GetMapping("/fields/all")
+    public ResponseEntity<Object> getAllAccountsFieldsAll() {
+        log.info("Account get by id data: Controller");
+        return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsAll(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
 
 }
