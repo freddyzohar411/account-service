@@ -60,6 +60,12 @@ public class MappingUtil {
 		}
 	}
 
+	/**
+	 * This method is used to convert Object to List of JsonNode (Used in HTTPResponse)
+	 * @param objList
+	 * @param key
+	 * @return
+	 */
 	public static List<JsonNode> convertObjectToListOfJsonNode(List<Object> objList, String key) {
 		List<JsonNode> JsonNodeList = objList.stream().map(obj -> {
 			if (obj instanceof Map) {
@@ -83,6 +89,12 @@ public class MappingUtil {
 		return JsonNodeList;
 	}
 
+	/**
+	 * This method is used to convert Object to JsonNode (Used in HTTPResponse)
+	 * @param obj
+	 * @param key
+	 * @return
+	 */
 	public static JsonNode convertObjectToJsonNode(Object obj, String key) {
 		if (obj instanceof Map) {
 			// Assuming workExperience is a Map
@@ -102,6 +114,11 @@ public class MappingUtil {
 		return null; // or throw an exception, or handle it according to your requirements
 	}
 
+	/**
+	 * This method is used to merge List of JSON nodes into one
+	 * @param jsonNodes
+	 * @return
+	 */
 	public static JsonNode mergeJsonNodes(List<JsonNode> jsonNodes) {
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode mergedNode = mapper.createObjectNode();

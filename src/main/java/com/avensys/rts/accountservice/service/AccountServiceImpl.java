@@ -424,6 +424,11 @@ public class AccountServiceImpl implements AccountService {
 		return accountEntities;
 	}
 
+	/**
+	 * Get account Data (Only account microservice)
+	 * @param accountId
+	 * @return
+	 */
 	@Override
 	public AccountListingDataDTO getAccountByIdData(Integer accountId) {
 		return accountEntityToAccountNewListingDataDTO(accountRepository.findByIdAndDeleted(accountId, false, true)
@@ -431,7 +436,7 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	/**
-	 * Get all account fields (New)
+	 * Get all account fields including all related microservices
 	 * 
 	 * @param accountId
 	 * @return
@@ -459,12 +464,19 @@ public class AccountServiceImpl implements AccountService {
 		return allFields;
 	}
 
+	/**
+	 * Get all account data including all related microservices
+	 * 
+	 * @param accountId
+	 * @return
+	 */
 	@Override
 	public HashMap<String, Object> getAccountByIdDataAll(Integer accountId) {
 		HashMap<String, Object> accountData = new HashMap<>();
 		// Get account fields from account microservice
 		JsonNode accountInfo = getAccountInfoByIDJsonNode(accountId);
 		accountData.put("accountInfo", accountInfo);
+
 		// Get contact fields from contact microservice
 		HttpResponse accountContactResponse = contactAPIClient.getContactsByEntityTypeAndEntityId("account_contact",
 				accountId);
@@ -475,10 +487,12 @@ public class AccountServiceImpl implements AccountService {
 		accountData.put("accountContact", accountContactJsonNode);
 
 		// Get instruction fields from instruction microservice
-		HttpResponse accountInstructionResponse = instructionAPIClient
-				.getInstructionByEntityId("account_instruction", accountId);
-		Object accountInstructionData = MappingUtil.mapClientBodyToClass(accountInstructionResponse.getData(), Object.class);
-		accountData.put("accountInstruction", MappingUtil.convertObjectToJsonNode(accountInstructionData, "submissionData"));
+		HttpResponse accountInstructionResponse = instructionAPIClient.getInstructionByEntityId("account_instruction",
+				accountId);
+		Object accountInstructionData = MappingUtil.mapClientBodyToClass(accountInstructionResponse.getData(),
+				Object.class);
+		accountData.put("accountInstruction",
+				MappingUtil.convertObjectToJsonNode(accountInstructionData, "submissionData"));
 
 		return accountData;
 	}

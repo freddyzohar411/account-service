@@ -16,6 +16,11 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Author: Koh He Xiang
+ * This is the model class include extra data for account
+ * when sending back to client
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
