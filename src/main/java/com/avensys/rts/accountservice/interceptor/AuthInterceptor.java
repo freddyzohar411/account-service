@@ -1,5 +1,6 @@
 package com.avensys.rts.accountservice.interceptor;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -32,6 +33,20 @@ public class AuthInterceptor implements HandlerInterceptor {
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 		log.info("Auth Pre-handling");
+
+		// Get the request URL
+		String requestUri = request.getRequestURI();
+		System.out.println("Request URI: " + requestUri);
+
+		// Check if the request URL is in the list of URLs that are allowed without
+		// token
+		List<String> allowedUrls = Arrays.asList("/api/user/signin", "/api/user/signup", "/api/user/logout",
+				"/api/user/validate");
+
+		if (allowedUrls.contains(requestUri)) {
+			log.info("Allowing request without token validation for URL: {}", requestUri);
+			return true; // Allow the request to continue without token validation
+		}
 
 		// Get token from header from axios
 		String authorizationHeader = request.getHeader("Authorization");
