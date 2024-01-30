@@ -147,7 +147,7 @@ public class AccountController {
     }
 
     @RequiresAllPermissions({Permission.ACCOUNT_READ})
-    @PostMapping("/listing/admin")
+    @PostMapping("/listing/all")
     public ResponseEntity<Object> getAccountListingAdmin(@RequestBody AccountListingRequestDTO accountListingRequestDTO) {
         log.info("Account get all fields: Controller");
         Integer page = accountListingRequestDTO.getPage();
