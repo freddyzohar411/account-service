@@ -31,9 +31,9 @@ public interface AccountService {
 
     Set<FieldInformation> getAllAccountsFieldsNew();
 
-    AccountListingResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy, String sortDirection);
+    AccountListingResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy, String sortDirection, Boolean isGetAll);
 
-    AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields);
+    AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields, Boolean isGetAll);
 
     void deleteDraftAccount(Integer accountId);
 

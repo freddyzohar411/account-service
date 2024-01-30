@@ -140,11 +140,29 @@ public class AccountController {
         String searchTerm = accountListingRequestDTO.getSearchTerm();
         List<String> searchFields = accountListingRequestDTO.getSearchFields();
         if (searchTerm == null || searchTerm.isEmpty()) {
-            return ResponseUtil.generateSuccessResponse(accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+            return ResponseUtil.generateSuccessResponse(accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, false), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
         }
         return ResponseUtil.generateSuccessResponse(accountService.getAccountListingPageWithSearch(
-                page, pageSize, sortBy, sortDirection, searchTerm, searchFields), HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
+                page, pageSize, sortBy, sortDirection, searchTerm, searchFields, false), HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
     }
+
+    @RequiresAllPermissions({Permission.ACCOUNT_READ})
+    @PostMapping("/listing/admin")
+    public ResponseEntity<Object> getAccountListingAdmin(@RequestBody AccountListingRequestDTO accountListingRequestDTO) {
+        log.info("Account get all fields: Controller");
+        Integer page = accountListingRequestDTO.getPage();
+        Integer pageSize = accountListingRequestDTO.getPageSize();
+        String sortBy = accountListingRequestDTO.getSortBy();
+        String sortDirection = accountListingRequestDTO.getSortDirection();
+        String searchTerm = accountListingRequestDTO.getSearchTerm();
+        List<String> searchFields = accountListingRequestDTO.getSearchFields();
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            return ResponseUtil.generateSuccessResponse(accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, true), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+        }
+        return ResponseUtil.generateSuccessResponse(accountService.getAccountListingPageWithSearch(
+                page, pageSize, sortBy, sortDirection, searchTerm, searchFields, true), HttpStatus.OK, messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+
 
     /**
      * Hard delete draft account
