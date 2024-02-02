@@ -288,7 +288,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AccountListingResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection) {
+			String sortDirection, Boolean isGetAll) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -301,12 +301,17 @@ public class AccountServiceImpl implements AccountService {
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
 		Page<AccountEntity> accountEntitiesPage = null;
+
+		List<Long> userIds = new ArrayList<>();
+		if (!isGetAll) {
+			userIds = userUtil.getUsersIdUnderManager();
+		}
 		// Try with numeric first else try with string (jsonb)
 		try {
 			accountEntitiesPage = accountRepository.findAllByOrderByNumericWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest);
+					userIds, false, false, true, pageRequest);
 		} catch (Exception e) {
-			accountEntitiesPage = accountRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(),
+			accountEntitiesPage = accountRepository.findAllByOrderByStringWithUserIds(userIds,
 					false, false, true, pageRequest);
 		}
 
@@ -315,7 +320,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields) {
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -328,13 +333,19 @@ public class AccountServiceImpl implements AccountService {
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
 		Page<AccountEntity> accountEntitiesPage = null;
+
+		List<Long> userIds = new ArrayList<>();
+		if (!isGetAll) {
+			userIds = userUtil.getUsersIdUnderManager();
+		}
+
 		// Try with numeric first else try with string (jsonb)
 		try {
 			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumericWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest, searchFields, searchTerm);
+					userIds, false, false, true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
 			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchStringWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, false, true, pageRequest, searchFields, searchTerm);
+					userIds, false, false, true, pageRequest, searchFields, searchTerm);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
