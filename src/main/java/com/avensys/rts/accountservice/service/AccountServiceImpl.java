@@ -85,9 +85,10 @@ public class AccountServiceImpl implements AccountService {
 			HttpResponse documentResponse = documentAPIClient.createDocument(documentRequestDTO);
 			DocumentResponseDTO documentData = MappingUtil.mapClientBodyToClass(documentResponse.getData(),
 					DocumentResponseDTO.class);
-		} else {
-			throw new RequiredDocumentMissingException("Upload agreement document is required");
 		}
+//		else {
+//			throw new RequiredDocumentMissingException("Upload agreement document is required");
+//		}
 
 		// Save form data to form submission microservice
 		FormSubmissionsRequestDTO formSubmissionsRequestDTO = accountNewRequestDTOToFormSubmissionRequestDTO(
@@ -156,15 +157,30 @@ public class AccountServiceImpl implements AccountService {
 
 		// Update document data
 		if (accountRequest.getUploadAgreement() != null) {
+//			CommercialRequest.DocumentRequestDTO documentRequestDTO = new CommercialRequest.DocumentRequestDTO();
+//			System.out.println(("OKAY"));
+//			// Save document and tag to account entity
+//			documentRequestDTO.setEntityId(accountEntity.getId());
+//			documentRequestDTO.setEntityType(ACCOUNT_TYPE);
+//
+//			documentRequestDTO.setFile(accountRequest.getUploadAgreement());
+//			HttpResponse documentResponse = documentAPIClient.updateDocument(documentRequestDTO);
+//			DocumentResponseDTO documentData = MappingUtil.mapClientBodyToClass(documentResponse.getData(),
+//					DocumentResponseDTO.class);
+			// Delete old file and save new file
+			HttpResponse documentResponse = documentAPIClient.deleteDocumentsByEntityTypeAndEntityId("account_account",
+					accountEntity.getId());
 			CommercialRequest.DocumentRequestDTO documentRequestDTO = new CommercialRequest.DocumentRequestDTO();
 			// Save document and tag to account entity
 			documentRequestDTO.setEntityId(accountEntity.getId());
 			documentRequestDTO.setEntityType(ACCOUNT_TYPE);
-
 			documentRequestDTO.setFile(accountRequest.getUploadAgreement());
-			HttpResponse documentResponse = documentAPIClient.updateDocument(documentRequestDTO);
-			DocumentResponseDTO documentData = MappingUtil.mapClientBodyToClass(documentResponse.getData(),
+			HttpResponse documentResponseNew = documentAPIClient.createDocument(documentRequestDTO);
+			DocumentResponseDTO documentData = MappingUtil.mapClientBodyToClass(documentResponseNew.getData(),
 					DocumentResponseDTO.class);
+		} else if (accountRequest.getIsDeleteFile()) {
+			HttpResponse documentResponse = documentAPIClient.deleteDocumentsByEntityTypeAndEntityId("account_account",
+					accountEntity.getId());
 		}
 
 		// Added - Update accountSubmissionData

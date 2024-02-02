@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class AccountRequestDTO {
     private String accountName;
     private MultipartFile uploadAgreement;
+    private Boolean isDeleteFile = false;
 
     // Form Submission
     private String formData;
