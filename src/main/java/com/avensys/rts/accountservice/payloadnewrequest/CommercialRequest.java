@@ -1,33 +1,37 @@
 package com.avensys.rts.accountservice.payloadnewrequest;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
- * Author: Koh He Xiang
- * This class is used to store the request parameters for the new account commercial create api
+ * Author: Koh He Xiang This class is used to store the request parameters for
+ * the new account commercial create api
  */
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommercialRequest {
-    private String msp;
-    private String markUp;
-    private String entityType;
-    private Integer entityId;
+	private String msp;
+	private String markUp;
+	private String entityType;
+	private Integer entityId;
 
-    // Form Submission
-    private String formData;
-    private Integer formId;
+	// Form Submission
+	private String formData;
+	private Integer formId;
 
 	/**
-	 * author: Koh He Xiang
-	 * This is the DTO class for the document delete request
+	 * author: Koh He Xiang This is the DTO class for the document delete request
 	 */
-	@Data
+	@Setter
+	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class DocumentDeleteRequestDTO {
@@ -36,10 +40,10 @@ public class CommercialRequest {
 	}
 
 	/**
-	 * author: Koh He Xiang
-	 * This is the DTO class for the document request
+	 * author: Koh He Xiang This is the DTO class for the document request
 	 */
-	@Data
+	@Setter
+	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonIgnoreProperties(ignoreUnknown = true)

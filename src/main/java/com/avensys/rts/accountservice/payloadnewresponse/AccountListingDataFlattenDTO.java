@@ -1,8 +1,6 @@
 package com.avensys.rts.accountservice.payloadnewresponse;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -11,11 +9,14 @@ import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountListingDataFlattenDTO {

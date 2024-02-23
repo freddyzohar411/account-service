@@ -1,14 +1,15 @@
 package com.avensys.rts.accountservice.payloadnewresponse;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * author: Koh He Xiang
- * This is the DTO class for the document response
+ * author: Koh He Xiang This is the DTO class for the document response
  */
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class DocumentResponseDTO {

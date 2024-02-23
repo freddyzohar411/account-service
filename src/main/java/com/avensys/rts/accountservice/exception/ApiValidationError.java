@@ -1,12 +1,10 @@
 package com.avensys.rts.accountservice.exception;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-@Data
 @Setter
 @Getter
 @EqualsAndHashCode(callSuper = false)
