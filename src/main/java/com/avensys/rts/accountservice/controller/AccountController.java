@@ -1,25 +1,39 @@
 package com.avensys.rts.accountservice.controller;
 
-import com.avensys.rts.accountservice.annotation.RequiresAllPermissions;
-import com.avensys.rts.accountservice.constant.MessageConstants;
-import com.avensys.rts.accountservice.enums.Permission;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountListingRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
-import com.avensys.rts.accountservice.service.AccountServiceImpl;
-import com.avensys.rts.accountservice.util.ResponseUtil;
-import jakarta.validation.Valid;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.avensys.rts.accountservice.annotation.RequiresAllPermissions;
+import com.avensys.rts.accountservice.constant.MessageConstants;
+import com.avensys.rts.accountservice.enums.Permission;
+import com.avensys.rts.accountservice.payloadnewrequest.AccountListingRequestDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO;
+import com.avensys.rts.accountservice.service.AccountServiceImpl;
+import com.avensys.rts.accountservice.util.ResponseUtil;
+
+import jakarta.validation.Valid;
 
 /**
  * Author: Koh He Xiang
@@ -249,6 +263,15 @@ public class AccountController {
     public ResponseEntity<Object> getAllAccountsFieldsAll() {
         log.info("Account get by id data: Controller");
         return ResponseUtil.generateSuccessResponse(accountService.getAllAccountsFieldsAll(), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+    }
+    /*
+     * save all the fields in the custom view
+     */
+    @PostMapping("/save/customfields")
+    public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
+        log.info("Save Account customFields: Controller");
+        CustomFieldsResponseDTO customFieldsResponseDTO = accountService.saveCustomFields(customFieldsRequestDTO);
+        return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
     }
 
 }

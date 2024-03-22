@@ -13,5 +13,7 @@ public class MessageConstants {
     public static final String ACCOUNT_SUCCESS = "account.success";
     public static final String ACCOUNT_NOT_FOUND = "account.notfound";
     public static final String ACCOUNT_EXIST = "account.exist";
+    //new
+    public static final String ACCOUNT_CUSTOM_VIEW = "account.customViewSaved";
 
 }

@@ -1,35 +1,57 @@
 package com.avensys.rts.accountservice.service;
 
-import com.avensys.rts.accountservice.APIClient.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.avensys.rts.accountservice.APIClient.ContactAPIClient;
+import com.avensys.rts.accountservice.APIClient.DocumentAPIClient;
+import com.avensys.rts.accountservice.APIClient.FormSubmissionAPIClient;
+import com.avensys.rts.accountservice.APIClient.InstructionAPIClient;
+import com.avensys.rts.accountservice.APIClient.UserAPIClient;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
 import com.avensys.rts.accountservice.entity.AccountEntity;
-import com.avensys.rts.accountservice.exception.RequiredDocumentMissingException;
+import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
+import com.avensys.rts.accountservice.exception.DuplicateResourceException;
 import com.avensys.rts.accountservice.model.AccountExtraData;
 import com.avensys.rts.accountservice.model.FieldInformation;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.CommercialRequest;
+import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.FormSubmissionsRequestDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.*;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountListingDataDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountListingResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountNameResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.DocumentResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.FormSubmissionsResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.UserResponseDTO;
+import com.avensys.rts.accountservice.repository.AccountCustomFieldsRepository;
 import com.avensys.rts.accountservice.repository.AccountRepository;
 import com.avensys.rts.accountservice.util.JwtUtil;
 import com.avensys.rts.accountservice.util.MappingUtil;
 import com.avensys.rts.accountservice.util.StringUtil;
 import com.avensys.rts.accountservice.util.UserUtil;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.transaction.Transactional;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 
-import java.util.*;
+import jakarta.transaction.Transactional;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -40,6 +62,9 @@ public class AccountServiceImpl implements AccountService {
 
 	@Autowired
 	private AccountRepository accountRepository;
+	
+	@Autowired
+	private AccountCustomFieldsRepository accountCustomFieldsRepository;
 
 	@Autowired
 	private DocumentAPIClient documentAPIClient;
@@ -58,6 +83,9 @@ public class AccountServiceImpl implements AccountService {
 
 	@Autowired
 	private UserUtil userUtil;
+	
+	@Autowired
+	private MessageSource messageSource;
 
 	/**
 	 * Create an account draft
@@ -104,6 +132,41 @@ public class AccountServiceImpl implements AccountService {
 
 		System.out.println("Form Submission Id: " + savedAccountEntity.getFormSubmissionId());
 		return accountEntityToAccountResponseDTO(savedAccountEntity);
+	}
+	
+	@Override
+	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
+		
+		System.out.println(" Save Account customFields : Service");
+		System.out.println(customFieldsRequestDTO);
+		/*
+		 * if
+		 * (accountCustomFieldsRepository.existsByCustomViewName(customFieldsRequestDTO.
+		 * getName())) { throw new DuplicateResourceException(
+		 * messageSource.getMessage("error.customViewNametaken", null,
+		 * LocaleContextHolder.getLocale())); }
+		 */
+		CustomFieldsEntity accountCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(customFieldsRequestDTO);
+		return customFieldsEntityToCustomFieldsResponseDTO(accountCustomFieldsEntity);
+	}
+	
+	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO){
+		CustomFieldsEntity customFieldsEntity = new CustomFieldsEntity();
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setCreatedBy(customFieldsRequestDTO.getCreatedBy());
+		customFieldsEntity.setUpdatedBy(customFieldsRequestDTO.getUpdatedBy());
+		return accountCustomFieldsRepository.save(customFieldsEntity);
+	}
+	
+	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(CustomFieldsEntity accountCustomFieldsEntity){
+		CustomFieldsResponseDTO customFieldsResponseDTO = new CustomFieldsResponseDTO();
+		customFieldsResponseDTO.setColumnName(accountCustomFieldsEntity.getColumnName());
+		customFieldsResponseDTO.setCreatedBy(accountCustomFieldsEntity.getCreatedBy());
+		customFieldsResponseDTO.setName(accountCustomFieldsEntity.getName());
+		customFieldsResponseDTO.setUpdatedBy(accountCustomFieldsEntity.getUpdatedBy());
+		customFieldsResponseDTO.setId(accountCustomFieldsEntity.getId());
+		return customFieldsResponseDTO;
 	}
 
 	/**
