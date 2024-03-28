@@ -15,5 +15,6 @@ public class MessageConstants {
     public static final String ACCOUNT_EXIST = "account.exist";
     //new
     public static final String ACCOUNT_CUSTOM_VIEW = "account.customViewSaved";
+    public static final String ACCOUNT_CUSTOM_VIEW_SUCCESS = "account.customViewSuccess";
 
 }

@@ -1,5 +1,7 @@
 package com.avensys.rts.accountservice.payloadnewrequest;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,9 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CustomFieldsRequestDTO {
 
-	private Long id;
 	private String name;
-	private String columnName;
-	private Integer createdBy;
-	private Integer updatedBy;
+	private String type;
+	private List<String> columnName;
 }

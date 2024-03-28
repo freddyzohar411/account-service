@@ -1,6 +1,7 @@
 package com.avensys.rts.accountservice.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -135,17 +136,37 @@ public class AccountServiceImpl implements AccountService {
 	}
 	
 	@Override
+	public  List<CustomFieldsEntity> getAllCreatedCustomViews(){
+		
+		List<CustomFieldsEntity> customfields =accountCustomFieldsRepository.findAllByUser(getUserId()) ;
+		return customfields;
+	}
+	
+	@Override
+	public CustomFieldsResponseDTO getSelectedCustomView() {
+		//if(isSelected == true)
+		CustomFieldsResponseDTO customFieldsResponseDTO = accountCustomFieldsRepository.findAllByUserAndSelected(getUserId(),true);
+		return customFieldsResponseDTO;
+	}
+	
+	/*
+	 * @Override public CustomFieldsResponseDTO getAccountCusotmView(Long id) {
+	 * Optional<CustomFieldsEntity> customFieldsResponseDTO =
+	 * accountCustomFieldsRepository.findById(id); return customFieldsResponseDTO; }
+	 */
+	
+	@Override
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
 		
 		System.out.println(" Save Account customFields : Service");
 		System.out.println(customFieldsRequestDTO);
-		/*
-		 * if
-		 * (accountCustomFieldsRepository.existsByCustomViewName(customFieldsRequestDTO.
-		 * getName())) { throw new DuplicateResourceException(
-		 * messageSource.getMessage("error.customViewNametaken", null,
-		 * LocaleContextHolder.getLocale())); }
-		 */
+		
+		  if
+		  (accountCustomFieldsRepository.existsByName(customFieldsRequestDTO.
+		  getName())) { throw new DuplicateResourceException(
+		  messageSource.getMessage("error.customViewNametaken", null,
+		  LocaleContextHolder.getLocale())); }
+		 
 		CustomFieldsEntity accountCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(customFieldsRequestDTO);
 		return customFieldsEntityToCustomFieldsResponseDTO(accountCustomFieldsEntity);
 	}
@@ -153,17 +174,27 @@ public class AccountServiceImpl implements AccountService {
 	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO){
 		CustomFieldsEntity customFieldsEntity = new CustomFieldsEntity();
 		customFieldsEntity.setName(customFieldsRequestDTO.getName());
-		customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
-		customFieldsEntity.setCreatedBy(customFieldsRequestDTO.getCreatedBy());
-		customFieldsEntity.setUpdatedBy(customFieldsRequestDTO.getUpdatedBy());
+		customFieldsEntity.setType(customFieldsRequestDTO.getType());
+		//List<String> columnNames = customFieldsRequestDTO.getColumnName();
+		
+		//converting list of string to comma saparated string
+		String columnNames = String.join(",",customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setColumnName(columnNames);
+		//customFieldsEntity.setColumnName(MappingUtil.convertJsonNodeToJSONString(customFieldsRequestDTO.getColumnName()));
+		customFieldsEntity.setCreatedBy(getUserId());
+		customFieldsEntity.setUpdatedBy(getUserId());
 		return accountCustomFieldsRepository.save(customFieldsEntity);
 	}
 	
 	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(CustomFieldsEntity accountCustomFieldsEntity){
 		CustomFieldsResponseDTO customFieldsResponseDTO = new CustomFieldsResponseDTO();
-		customFieldsResponseDTO.setColumnName(accountCustomFieldsEntity.getColumnName());
+		//Converting String to List of String.
+		String columnNames = accountCustomFieldsEntity.getColumnName();
+		List<String> columnNamesList = Arrays.asList(columnNames.split("\\s*,\\s*"));
+		customFieldsResponseDTO.setColumnName(columnNamesList);
 		customFieldsResponseDTO.setCreatedBy(accountCustomFieldsEntity.getCreatedBy());
 		customFieldsResponseDTO.setName(accountCustomFieldsEntity.getName());
+		customFieldsResponseDTO.setType(accountCustomFieldsEntity.getType());
 		customFieldsResponseDTO.setUpdatedBy(accountCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(accountCustomFieldsEntity.getId());
 		return customFieldsResponseDTO;

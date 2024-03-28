@@ -21,8 +21,8 @@ import lombok.Setter;
  * This is the entity class for the account custom view table in
  * the database.
  */
-@Entity(name = "accountCustomView")
-@Table(name = "account_custom_view")
+@Entity(name = "customView")
+@Table(name = "custom_view")
 @Setter
 @Getter
 @AllArgsConstructor
@@ -36,9 +36,12 @@ public class CustomFieldsEntity {
 
 	@Column(name = "name", length = 50, nullable = false)
 	private String name;
+	
+	@Column(name = "type", length = 50, nullable = false)
+	private String type;
 
 	@Column(name = "column_name", length = 50000)
-	private String columnName;
+	private String columnName;		
 
 	@Column(name = "created_by")
 	private Integer createdBy;
@@ -53,4 +56,7 @@ public class CustomFieldsEntity {
 	@UpdateTimestamp
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
+	
+	@Column(name = "is_selected")
+	private  boolean isSelected = false ;
 }

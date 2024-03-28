@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.avensys.rts.accountservice.entity.AccountEntity;
+import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
 import com.avensys.rts.accountservice.model.FieldInformation;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
@@ -17,8 +18,14 @@ import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO
 
 public interface AccountService {
     AccountNewResponseDTO createAccount(AccountRequestDTO accountRequest);
-    
+    //new
     CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO);
+    
+    List<CustomFieldsEntity> getAllCreatedCustomViews();
+    
+    CustomFieldsResponseDTO getSelectedCustomView();
+    
+   // CustomFieldsResponseDTO getAccountCusotmView(Long id);
 
     AccountNewResponseDTO getAccount(Integer id);
 
