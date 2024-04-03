@@ -309,7 +309,7 @@ public class AccountController {
 				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
 	}
 
-	@GetMapping("/customfields/all")
+	@GetMapping("/customView/all")
 	public ResponseEntity<Object> getAllCreatedCustomViews() {
 		log.info("Account get all custom views: Controller");
 		return ResponseUtil.generateSuccessResponse(accountService.getAllCreatedCustomViews(), HttpStatus.OK,
@@ -321,6 +321,14 @@ public class AccountController {
 		log.info("Account selected custom view: Controller");
 		return ResponseUtil.generateSuccessResponse(accountService.getSelectedCustomView(), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+	
+	@PutMapping("/customView/update/{id}")
+	public ResponseEntity<Object> updateCustomView(@PathVariable Long id) {
+		log.info("Account custom view update: Controller");
+		CustomFieldsResponseDTO response = accountService.updateCustomView(id);
+		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
 	}
 	
 	/*

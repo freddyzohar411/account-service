@@ -25,6 +25,8 @@ public interface AccountService {
     
     CustomFieldsResponseDTO getSelectedCustomView();
     
+    CustomFieldsResponseDTO updateCustomView(Long id);
+    
    // CustomFieldsResponseDTO getAccountCusotmView(Long id);
 
     AccountNewResponseDTO getAccount(Integer id);

@@ -13,8 +13,15 @@ public interface AccountCustomFieldsRepository extends JpaRepository<CustomField
 
 	public Boolean existsByName(String name);
 	
-    @Query(value = "SELECT c FROM customView c WHERE c.createdBy = ?1")
-    List<CustomFieldsEntity> findAllByUser(Integer userId);
+    @Query(value = "SELECT c FROM customView c WHERE c.createdBy = ?1 AND c.type = ?2")
+    List<CustomFieldsEntity> findAllByUser(Integer userId,String type);
+    
+    @Query(value = "SELECT c FROM customView c WHERE c.id = ?1")
+    Optional<CustomFieldsEntity> findById(Long id);
+    
+    //for checkeing is there is any isSelected true.
+    @Query(value = "SELECT c FROM customView c WHERE c.createdBy = ?1 AND c.type = ?2")
+    CustomFieldsEntity findByUserAndType(Integer userId,String type);
     
     @Query(value = "SELECT c FROM customView c WHERE c.createdBy = ?1 AND c.isSelected = ?2")
     CustomFieldsResponseDTO findAllByUserAndSelected(Integer userId,boolean isSelected);

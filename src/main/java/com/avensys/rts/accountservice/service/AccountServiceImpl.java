@@ -63,7 +63,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Autowired
 	private AccountRepository accountRepository;
-	
+
 	@Autowired
 	private AccountCustomFieldsRepository accountCustomFieldsRepository;
 
@@ -84,7 +84,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Autowired
 	private UserUtil userUtil;
-	
+
 	@Autowired
 	private MessageSource messageSource;
 
@@ -134,61 +134,100 @@ public class AccountServiceImpl implements AccountService {
 		System.out.println("Form Submission Id: " + savedAccountEntity.getFormSubmissionId());
 		return accountEntityToAccountResponseDTO(savedAccountEntity);
 	}
-	
+
 	@Override
-	public  List<CustomFieldsEntity> getAllCreatedCustomViews(){
-		
-		List<CustomFieldsEntity> customfields =accountCustomFieldsRepository.findAllByUser(getUserId()) ;
+	public List<CustomFieldsEntity> getAllCreatedCustomViews() {
+
+		List<CustomFieldsEntity> customfields = accountCustomFieldsRepository.findAllByUser(getUserId(), "Account");
 		return customfields;
 	}
-	
+
 	@Override
 	public CustomFieldsResponseDTO getSelectedCustomView() {
-		//if(isSelected == true)
-		CustomFieldsResponseDTO customFieldsResponseDTO = accountCustomFieldsRepository.findAllByUserAndSelected(getUserId(),true);
+		CustomFieldsEntity selectedCustomView = accountCustomFieldsRepository.findByUserAndType(getUserId(), "Account");
+		if (selectedCustomView.isSelected() == true) {
+			selectedCustomView.setSelected(false);
+			accountCustomFieldsRepository.save(selectedCustomView);
+		}
+		CustomFieldsResponseDTO customFieldsResponseDTO = accountCustomFieldsRepository
+				.findAllByUserAndSelected(getUserId(), true);
 		return customFieldsResponseDTO;
 	}
-	
+
+	@Override
+	public CustomFieldsResponseDTO updateCustomView(Long id) {
+		List<CustomFieldsEntity> selectedCustomView = accountCustomFieldsRepository.findAllByUser(getUserId(),
+				"Account");
+		for (CustomFieldsEntity customView : selectedCustomView) {
+			if (customView.isSelected() == true) {
+				customView.setSelected(false);
+				accountCustomFieldsRepository.save(customView);
+			}
+		}
+		Optional<CustomFieldsEntity> customFieldsEntity = accountCustomFieldsRepository
+				.findById(id);
+		customFieldsEntity.get().setSelected(true);
+		accountCustomFieldsRepository.save(customFieldsEntity.get());
+		
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity.get());
+		
+		
+
+	}
+
 	/*
 	 * @Override public CustomFieldsResponseDTO getAccountCusotmView(Long id) {
 	 * Optional<CustomFieldsEntity> customFieldsResponseDTO =
 	 * accountCustomFieldsRepository.findById(id); return customFieldsResponseDTO; }
 	 */
-	
+
 	@Override
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
-		
+
 		System.out.println(" Save Account customFields : Service");
 		System.out.println(customFieldsRequestDTO);
-		
-		  if
-		  (accountCustomFieldsRepository.existsByName(customFieldsRequestDTO.
-		  getName())) { throw new DuplicateResourceException(
-		  messageSource.getMessage("error.customViewNametaken", null,
-		  LocaleContextHolder.getLocale())); }
-		 
-		CustomFieldsEntity accountCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(customFieldsRequestDTO);
+
+		if (accountCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("error.customViewNametaken", null, LocaleContextHolder.getLocale()));
+		}
+
+		List<CustomFieldsEntity> selectedCustomView = accountCustomFieldsRepository.findAllByUser(getUserId(),
+				"Account");
+
+		if (selectedCustomView != null) {
+			for (CustomFieldsEntity customView : selectedCustomView) {
+				if (customView.isSelected() == true) {
+					customView.setSelected(false);
+					accountCustomFieldsRepository.save(customView);
+				}
+			}
+
+		}
+		CustomFieldsEntity accountCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
+				customFieldsRequestDTO);
 		return customFieldsEntityToCustomFieldsResponseDTO(accountCustomFieldsEntity);
 	}
-	
-	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO){
+
+	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO) {
 		CustomFieldsEntity customFieldsEntity = new CustomFieldsEntity();
 		customFieldsEntity.setName(customFieldsRequestDTO.getName());
 		customFieldsEntity.setType(customFieldsRequestDTO.getType());
-		//List<String> columnNames = customFieldsRequestDTO.getColumnName();
-		
-		//converting list of string to comma saparated string
-		String columnNames = String.join(",",customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setSelected(true);
+		// List<String> columnNames = customFieldsRequestDTO.getColumnName();
+
+		// converting list of string to comma saparated string
+		String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
 		customFieldsEntity.setColumnName(columnNames);
-		//customFieldsEntity.setColumnName(MappingUtil.convertJsonNodeToJSONString(customFieldsRequestDTO.getColumnName()));
+		// customFieldsEntity.setColumnName(MappingUtil.convertJsonNodeToJSONString(customFieldsRequestDTO.getColumnName()));
 		customFieldsEntity.setCreatedBy(getUserId());
 		customFieldsEntity.setUpdatedBy(getUserId());
 		return accountCustomFieldsRepository.save(customFieldsEntity);
 	}
-	
-	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(CustomFieldsEntity accountCustomFieldsEntity){
+
+	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(CustomFieldsEntity accountCustomFieldsEntity) {
 		CustomFieldsResponseDTO customFieldsResponseDTO = new CustomFieldsResponseDTO();
-		//Converting String to List of String.
+		// Converting String to List of String.
 		String columnNames = accountCustomFieldsEntity.getColumnName();
 		List<String> columnNamesList = Arrays.asList(columnNames.split("\\s*,\\s*"));
 		customFieldsResponseDTO.setColumnName(columnNamesList);
@@ -418,11 +457,11 @@ public class AccountServiceImpl implements AccountService {
 		}
 		// Try with numeric first else try with string (jsonb)
 		try {
-			accountEntitiesPage = accountRepository.findAllByOrderByNumericWithUserIds(
-					userIds, false, false, true, pageRequest);
+			accountEntitiesPage = accountRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
+					pageRequest);
 		} catch (Exception e) {
-			accountEntitiesPage = accountRepository.findAllByOrderByStringWithUserIds(userIds,
-					false, false, true, pageRequest);
+			accountEntitiesPage = accountRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
+					pageRequest);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
@@ -451,11 +490,11 @@ public class AccountServiceImpl implements AccountService {
 
 		// Try with numeric first else try with string (jsonb)
 		try {
-			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumericWithUserIds(
-					userIds, false, false, true, pageRequest, searchFields, searchTerm);
+			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false, false,
+					true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
-			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchStringWithUserIds(
-					userIds, false, false, true, pageRequest, searchFields, searchTerm);
+			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false, false,
+					true, pageRequest, searchFields, searchTerm);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
@@ -547,6 +586,7 @@ public class AccountServiceImpl implements AccountService {
 
 	/**
 	 * Get account Data (Only account microservice)
+	 * 
 	 * @param accountId
 	 * @return
 	 */
