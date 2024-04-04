@@ -27,6 +27,8 @@ public interface AccountService {
     
     CustomFieldsResponseDTO updateCustomView(Long id);
     
+    public void softDelete(Long id);
+    
    // CustomFieldsResponseDTO getAccountCusotmView(Long id);
 
     AccountNewResponseDTO getAccount(Integer id);

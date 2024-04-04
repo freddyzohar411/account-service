@@ -331,6 +331,14 @@ public class AccountController {
 				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
 	}
 	
+	@DeleteMapping("/customView/delete/{id}")
+	public ResponseEntity<Object> softDeleteCustomView(@PathVariable Long id) {
+		log.info("Custom view soft delete: Controller");
+		accountService.softDelete(id);
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
+	}
+	
 	/*
 	 * @GetMapping("/cusomtView/{id}") public ResponseEntity<Object>
 	 * getCusomView(@PathVariable Long id) {

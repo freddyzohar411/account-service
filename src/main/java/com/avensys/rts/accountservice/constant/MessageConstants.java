@@ -17,5 +17,6 @@ public class MessageConstants {
     public static final String ACCOUNT_CUSTOM_VIEW = "account.customViewSaved";
     public static final String ACCOUNT_CUSTOM_VIEW_SUCCESS = "account.customViewSuccess";
     public static final String ACCOUNT_CUSTOM_VIEW_UPDATED = "account.customViewUpdated";
+    public static final String ACCOUNT_CUSTOM_VIEW_DELETED = "account.customViewdeleted";
 
 }

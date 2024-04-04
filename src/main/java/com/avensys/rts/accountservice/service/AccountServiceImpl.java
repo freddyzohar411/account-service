@@ -138,7 +138,7 @@ public class AccountServiceImpl implements AccountService {
 	@Override
 	public List<CustomFieldsEntity> getAllCreatedCustomViews() {
 
-		List<CustomFieldsEntity> customfields = accountCustomFieldsRepository.findAllByUser(getUserId(), "Account");
+		List<CustomFieldsEntity> customfields = accountCustomFieldsRepository.findAllByUser(getUserId(), "Account",false);
 		return customfields;
 	}
 
@@ -156,8 +156,13 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public CustomFieldsResponseDTO updateCustomView(Long id) {
+		if (accountCustomFieldsRepository.findById(id).get().getIsDeleted()) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("error.customViewAlreadyDeleted", null, LocaleContextHolder.getLocale()));
+		}
+		
 		List<CustomFieldsEntity> selectedCustomView = accountCustomFieldsRepository.findAllByUser(getUserId(),
-				"Account");
+				"Account",false);
 		for (CustomFieldsEntity customView : selectedCustomView) {
 			if (customView.isSelected() == true) {
 				customView.setSelected(false);
@@ -193,7 +198,7 @@ public class AccountServiceImpl implements AccountService {
 		}
 
 		List<CustomFieldsEntity> selectedCustomView = accountCustomFieldsRepository.findAllByUser(getUserId(),
-				"Account");
+				"Account",false);
 
 		if (selectedCustomView != null) {
 			for (CustomFieldsEntity customView : selectedCustomView) {
@@ -237,6 +242,18 @@ public class AccountServiceImpl implements AccountService {
 		customFieldsResponseDTO.setUpdatedBy(accountCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(accountCustomFieldsEntity.getId());
 		return customFieldsResponseDTO;
+	}
+	@Override
+	public void softDelete(Long id) {
+		CustomFieldsEntity customFieldsEntity = accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+
+		// Soft delete the custom view
+		customFieldsEntity.setIsDeleted(true);
+		customFieldsEntity.setSelected(false);
+
+		// Save custom view
+		accountCustomFieldsRepository.save(customFieldsEntity);
 	}
 
 	/**
