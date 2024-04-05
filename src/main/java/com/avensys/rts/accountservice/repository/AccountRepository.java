@@ -1,11 +1,13 @@
 package com.avensys.rts.accountservice.repository;
 
-import com.avensys.rts.accountservice.entity.AccountEntity;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
-import java.util.Optional;
+import com.avensys.rts.accountservice.entity.AccountEntity;
+import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
 
 public interface AccountRepository extends JpaRepository<AccountEntity, Integer>, CustomAccountRepository {
     @Query(value = "SELECT a FROM account a WHERE a.id = ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
@@ -28,5 +30,8 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Integer>
 
     @Query(value = "SELECT a FROM account a WHERE a.id = ?1 AND a.isDraft = ?2 AND a.isActive = ?3")
     Optional<AccountEntity> findByIdAndDraft(Integer id, boolean draft, boolean isActive);
+    
+    
+    
 
 }

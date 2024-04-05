@@ -1,17 +1,35 @@
 package com.avensys.rts.accountservice.service;
 
-import com.avensys.rts.accountservice.entity.AccountEntity;
-import com.avensys.rts.accountservice.model.FieldInformation;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.avensys.rts.accountservice.entity.AccountEntity;
+import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
+import com.avensys.rts.accountservice.model.FieldInformation;
+import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountListingDataDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountListingResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountNameResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO;
+
 public interface AccountService {
     AccountNewResponseDTO createAccount(AccountRequestDTO accountRequest);
+    //new
+    CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO);
+    
+    List<CustomFieldsEntity> getAllCreatedCustomViews();
+    
+    CustomFieldsResponseDTO getSelectedCustomView();
+    
+    CustomFieldsResponseDTO updateCustomView(Long id);
+    
+    public void softDelete(Long id);
+    
+   // CustomFieldsResponseDTO getAccountCusotmView(Long id);
 
     AccountNewResponseDTO getAccount(Integer id);
 

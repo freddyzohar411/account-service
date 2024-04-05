@@ -1,35 +1,58 @@
 package com.avensys.rts.accountservice.service;
 
-import com.avensys.rts.accountservice.APIClient.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.avensys.rts.accountservice.APIClient.ContactAPIClient;
+import com.avensys.rts.accountservice.APIClient.DocumentAPIClient;
+import com.avensys.rts.accountservice.APIClient.FormSubmissionAPIClient;
+import com.avensys.rts.accountservice.APIClient.InstructionAPIClient;
+import com.avensys.rts.accountservice.APIClient.UserAPIClient;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
 import com.avensys.rts.accountservice.entity.AccountEntity;
-import com.avensys.rts.accountservice.exception.RequiredDocumentMissingException;
+import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
+import com.avensys.rts.accountservice.exception.DuplicateResourceException;
 import com.avensys.rts.accountservice.model.AccountExtraData;
 import com.avensys.rts.accountservice.model.FieldInformation;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.CommercialRequest;
+import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.FormSubmissionsRequestDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.*;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountListingDataDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountListingResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountNameResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.DocumentResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.FormSubmissionsResponseDTO;
+import com.avensys.rts.accountservice.payloadnewresponse.UserResponseDTO;
+import com.avensys.rts.accountservice.repository.AccountCustomFieldsRepository;
 import com.avensys.rts.accountservice.repository.AccountRepository;
 import com.avensys.rts.accountservice.util.JwtUtil;
 import com.avensys.rts.accountservice.util.MappingUtil;
 import com.avensys.rts.accountservice.util.StringUtil;
 import com.avensys.rts.accountservice.util.UserUtil;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.transaction.Transactional;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 
-import java.util.*;
+import jakarta.transaction.Transactional;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -40,6 +63,9 @@ public class AccountServiceImpl implements AccountService {
 
 	@Autowired
 	private AccountRepository accountRepository;
+
+	@Autowired
+	private AccountCustomFieldsRepository accountCustomFieldsRepository;
 
 	@Autowired
 	private DocumentAPIClient documentAPIClient;
@@ -58,6 +84,9 @@ public class AccountServiceImpl implements AccountService {
 
 	@Autowired
 	private UserUtil userUtil;
+
+	@Autowired
+	private MessageSource messageSource;
 
 	/**
 	 * Create an account draft
@@ -104,6 +133,127 @@ public class AccountServiceImpl implements AccountService {
 
 		System.out.println("Form Submission Id: " + savedAccountEntity.getFormSubmissionId());
 		return accountEntityToAccountResponseDTO(savedAccountEntity);
+	}
+
+	@Override
+	public List<CustomFieldsEntity> getAllCreatedCustomViews() {
+
+		List<CustomFieldsEntity> customfields = accountCustomFieldsRepository.findAllByUser(getUserId(), "Account",false);
+		return customfields;
+	}
+
+	@Override
+	public CustomFieldsResponseDTO getSelectedCustomView() {
+		CustomFieldsEntity selectedCustomView = accountCustomFieldsRepository.findByUserAndType(getUserId(), "Account");
+		if (selectedCustomView.isSelected() == true) {
+			selectedCustomView.setSelected(false);
+			accountCustomFieldsRepository.save(selectedCustomView);
+		}
+		CustomFieldsResponseDTO customFieldsResponseDTO = accountCustomFieldsRepository
+				.findAllByUserAndSelected(getUserId(), true);
+		return customFieldsResponseDTO;
+	}
+
+	@Override
+	public CustomFieldsResponseDTO updateCustomView(Long id) {
+		if (accountCustomFieldsRepository.findById(id).get().getIsDeleted()) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("error.customViewAlreadyDeleted", null, LocaleContextHolder.getLocale()));
+		}
+		
+		List<CustomFieldsEntity> selectedCustomView = accountCustomFieldsRepository.findAllByUser(getUserId(),
+				"Account",false);
+		for (CustomFieldsEntity customView : selectedCustomView) {
+			if (customView.isSelected() == true) {
+				customView.setSelected(false);
+				accountCustomFieldsRepository.save(customView);
+			}
+		}
+		Optional<CustomFieldsEntity> customFieldsEntity = accountCustomFieldsRepository
+				.findById(id);
+		customFieldsEntity.get().setSelected(true);
+		accountCustomFieldsRepository.save(customFieldsEntity.get());
+		
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity.get());
+		
+		
+
+	}
+
+	/*
+	 * @Override public CustomFieldsResponseDTO getAccountCusotmView(Long id) {
+	 * Optional<CustomFieldsEntity> customFieldsResponseDTO =
+	 * accountCustomFieldsRepository.findById(id); return customFieldsResponseDTO; }
+	 */
+
+	@Override
+	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
+
+		System.out.println(" Save Account customFields : Service");
+		System.out.println(customFieldsRequestDTO);
+
+		if (accountCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("error.customViewNametaken", null, LocaleContextHolder.getLocale()));
+		}
+
+		List<CustomFieldsEntity> selectedCustomView = accountCustomFieldsRepository.findAllByUser(getUserId(),
+				"Account",false);
+
+		if (selectedCustomView != null) {
+			for (CustomFieldsEntity customView : selectedCustomView) {
+				if (customView.isSelected() == true) {
+					customView.setSelected(false);
+					accountCustomFieldsRepository.save(customView);
+				}
+			}
+
+		}
+		CustomFieldsEntity accountCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
+				customFieldsRequestDTO);
+		return customFieldsEntityToCustomFieldsResponseDTO(accountCustomFieldsEntity);
+	}
+
+	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO) {
+		CustomFieldsEntity customFieldsEntity = new CustomFieldsEntity();
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setType(customFieldsRequestDTO.getType());
+		customFieldsEntity.setSelected(true);
+		// List<String> columnNames = customFieldsRequestDTO.getColumnName();
+
+		// converting list of string to comma saparated string
+		String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setColumnName(columnNames);
+		// customFieldsEntity.setColumnName(MappingUtil.convertJsonNodeToJSONString(customFieldsRequestDTO.getColumnName()));
+		customFieldsEntity.setCreatedBy(getUserId());
+		customFieldsEntity.setUpdatedBy(getUserId());
+		return accountCustomFieldsRepository.save(customFieldsEntity);
+	}
+
+	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(CustomFieldsEntity accountCustomFieldsEntity) {
+		CustomFieldsResponseDTO customFieldsResponseDTO = new CustomFieldsResponseDTO();
+		// Converting String to List of String.
+		String columnNames = accountCustomFieldsEntity.getColumnName();
+		List<String> columnNamesList = Arrays.asList(columnNames.split("\\s*,\\s*"));
+		customFieldsResponseDTO.setColumnName(columnNamesList);
+		customFieldsResponseDTO.setCreatedBy(accountCustomFieldsEntity.getCreatedBy());
+		customFieldsResponseDTO.setName(accountCustomFieldsEntity.getName());
+		customFieldsResponseDTO.setType(accountCustomFieldsEntity.getType());
+		customFieldsResponseDTO.setUpdatedBy(accountCustomFieldsEntity.getUpdatedBy());
+		customFieldsResponseDTO.setId(accountCustomFieldsEntity.getId());
+		return customFieldsResponseDTO;
+	}
+	@Override
+	public void softDelete(Long id) {
+		CustomFieldsEntity customFieldsEntity = accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+
+		// Soft delete the custom view
+		customFieldsEntity.setIsDeleted(true);
+		customFieldsEntity.setSelected(false);
+
+		// Save custom view
+		accountCustomFieldsRepository.save(customFieldsEntity);
 	}
 
 	/**
@@ -324,11 +474,11 @@ public class AccountServiceImpl implements AccountService {
 		}
 		// Try with numeric first else try with string (jsonb)
 		try {
-			accountEntitiesPage = accountRepository.findAllByOrderByNumericWithUserIds(
-					userIds, false, false, true, pageRequest);
+			accountEntitiesPage = accountRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
+					pageRequest);
 		} catch (Exception e) {
-			accountEntitiesPage = accountRepository.findAllByOrderByStringWithUserIds(userIds,
-					false, false, true, pageRequest);
+			accountEntitiesPage = accountRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
+					pageRequest);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
@@ -357,11 +507,11 @@ public class AccountServiceImpl implements AccountService {
 
 		// Try with numeric first else try with string (jsonb)
 		try {
-			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumericWithUserIds(
-					userIds, false, false, true, pageRequest, searchFields, searchTerm);
+			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false, false,
+					true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
-			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchStringWithUserIds(
-					userIds, false, false, true, pageRequest, searchFields, searchTerm);
+			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false, false,
+					true, pageRequest, searchFields, searchTerm);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
@@ -453,6 +603,7 @@ public class AccountServiceImpl implements AccountService {
 
 	/**
 	 * Get account Data (Only account microservice)
+	 * 
 	 * @param accountId
 	 * @return
 	 */
