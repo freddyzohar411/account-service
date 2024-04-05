@@ -469,16 +469,20 @@ public class AccountServiceImpl implements AccountService {
 		Page<AccountEntity> accountEntitiesPage = null;
 
 		List<Long> userIds = new ArrayList<>();
+		List <String> userNamesEmail = new ArrayList<>();
 		if (!isGetAll) {
 			userIds = userUtil.getUsersIdUnderManager();
+			userNamesEmail = userUtil.getUserNameEmailUnderManager();
 		}
+
+		String accountOwnerValue = userUtil.getUserNameEmail();
 		// Try with numeric first else try with string (jsonb)
 		try {
 			accountEntitiesPage = accountRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
-					pageRequest);
+					userNamesEmail, pageRequest);
 		} catch (Exception e) {
 			accountEntitiesPage = accountRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
-					pageRequest);
+					userNamesEmail, pageRequest);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
@@ -500,18 +504,20 @@ public class AccountServiceImpl implements AccountService {
 
 		Page<AccountEntity> accountEntitiesPage = null;
 
+		List <String> userNamesEmail = new ArrayList<>();
 		List<Long> userIds = new ArrayList<>();
 		if (!isGetAll) {
 			userIds = userUtil.getUsersIdUnderManager();
+			userNamesEmail = userUtil.getUserNameEmailUnderManager();
 		}
 
 		// Try with numeric first else try with string (jsonb)
 		try {
 			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false, false,
-					true, pageRequest, searchFields, searchTerm);
+					true, userNamesEmail, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
 			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false, false,
-					true, pageRequest, searchFields, searchTerm);
+					true, userNamesEmail, pageRequest, searchFields, searchTerm);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);

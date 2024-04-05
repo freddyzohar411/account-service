@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Repository
 public class CustomAccountRepositoryImpl implements CustomAccountRepository {
@@ -475,9 +476,73 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		return nativeQuery.getResultList();
 	}
 
+//	@Override
+//	public Page<AccountEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted,
+//			Boolean isDraft, Boolean isActive, Pageable pageable) {
+//
+//		// Determine if sortBy is a regular column or a JSONB column
+//		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+//				: "updated_at";
+//		String orderByClause = sortBy;
+//		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+//			String[] parts = sortBy.split("\\.");
+//			String jsonColumnName = parts[0];
+//			String jsonKey = parts[1];
+//			orderByClause = String.format("(%s->>'%s')", jsonColumnName, jsonKey);
+//		}
+//
+//		// Extract sort direction from pageable
+//		String sortDirection = pageable.getSort().isSorted()
+//				? pageable.getSort().get().findFirst().get().getDirection().name()
+//				: "ASC";
+//
+//		// User ID condition
+//		String userCondition = "";
+//		if (!userIds.isEmpty()) {
+//			userCondition = " AND created_by IN (:userIds)";
+//		}
+//
+//		// Build the complete query string with user filter and excluding NULLs
+//		String queryString = String.format(
+//				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
+//				userCondition, orderByClause, sortDirection);
+//
+//		// Create and execute the query
+//		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
+//		query.setParameter("isDeleted", isDeleted);
+//		query.setParameter("isDraft", isDraft);
+//		query.setParameter("isActive", isActive);
+//		if (!userIds.isEmpty()) {
+//			query.setParameter("userIds", userIds);
+//		}
+//		query.setFirstResult((int) pageable.getOffset());
+//		query.setMaxResults(pageable.getPageSize());
+//
+//		// Get the result list
+//		List<AccountEntity> resultList = query.getResultList();
+//
+//		// Build the count query string
+//		String countQueryString = String.format(
+//				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s",
+//				userCondition);
+//
+//		// Create and execute the count query
+//		Query countQuery = entityManager.createNativeQuery(countQueryString);
+//		countQuery.setParameter("isDeleted", isDeleted);
+//		countQuery.setParameter("isDraft", isDraft);
+//		countQuery.setParameter("isActive", isActive);
+//		if (!userIds.isEmpty()) {
+//			countQuery.setParameter("userIds", userIds);
+//		}
+//		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+//
+//		// Create and return a Page object
+//		return new PageImpl<>(resultList, pageable, countResult);
+//	}
+
 	@Override
 	public Page<AccountEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive, Pageable pageable) {
+			Boolean isDraft, Boolean isActive,List<String> accountOwnerValues,  Pageable pageable) {
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -495,10 +560,16 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 				? pageable.getSort().get().findFirst().get().getDirection().name()
 				: "ASC";
 
-		// User ID condition
+		// User ID condition - Adjusted to include OR logic for JSONB filter
 		String userCondition = "";
-		if (!userIds.isEmpty()) {
-			userCondition = " AND created_by IN (:userIds)";
+		if (!userIds.isEmpty() || (accountOwnerValues != null && !accountOwnerValues.isEmpty())) {
+			String joinedAccountOwnerValues = accountOwnerValues.stream()
+					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping quotes
+					.collect(Collectors.joining(", "));
+
+			String jsonBFilter = " OR account_submission_data->>'accountOwner' IN (" + joinedAccountOwnerValues + ")";
+			userCondition = userIds.isEmpty() ? jsonBFilter :
+					String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
 		}
 
 		// Build the complete query string with user filter and excluding NULLs
@@ -539,10 +610,73 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		return new PageImpl<>(resultList, pageable, countResult);
 	}
 
+//	@Override
+//	public Page<AccountEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
+//			Boolean isDraft, Boolean isActive, Pageable pageable) {
+//
+//		// Determine if sortBy is a regular column or a JSONB column
+//		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+//				: "updated_at";
+//		String orderByClause = sortBy;
+//		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+//			String[] parts = sortBy.split("\\.");
+//			String jsonColumnName = parts[0];
+//			String jsonKey = parts[1];
+//			orderByClause = String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER)", jsonColumnName, jsonKey);
+//		}
+//
+//		// Extract sort direction from pageable
+//		String sortDirection = pageable.getSort().isSorted()
+//				? pageable.getSort().get().findFirst().get().getDirection().name()
+//				: "ASC";
+//
+//		// User ID condition
+//		String userCondition = "";
+//		if (!userIds.isEmpty()) {
+//			userCondition = " AND created_by IN (:userIds)";
+//		}
+//
+//		// Build the complete query string with user filter and excluding NULLs
+//		String queryString = String.format(
+//				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
+//				userCondition, orderByClause, sortDirection);
+//
+//		// Create and execute the query
+//		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
+//		query.setParameter("isDeleted", isDeleted);
+//		query.setParameter("isDraft", isDraft);
+//		query.setParameter("isActive", isActive);
+//		if (!userIds.isEmpty()) {
+//			query.setParameter("userIds", userIds);
+//		}
+//		query.setFirstResult((int) pageable.getOffset());
+//		query.setMaxResults(pageable.getPageSize());
+//
+//		// Get the result list
+//		List<AccountEntity> resultList = query.getResultList();
+//
+//		// Build the count query string
+//		String countQueryString = String.format(
+//				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s",
+//				userCondition);
+//
+//		// Create and execute the count query
+//		Query countQuery = entityManager.createNativeQuery(countQueryString);
+//		countQuery.setParameter("isDeleted", isDeleted);
+//		countQuery.setParameter("isDraft", isDraft);
+//		countQuery.setParameter("isActive", isActive);
+//		if (!userIds.isEmpty()) {
+//			countQuery.setParameter("userIds", userIds);
+//		}
+//		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+//
+//		// Create and return a Page object
+//		return new PageImpl<>(resultList, pageable, countResult);
+//	}
 
 	@Override
 	public Page<AccountEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive, Pageable pageable) {
+			Boolean isDraft, Boolean isActive, List<String> accountOwnerValues, Pageable pageable) {
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -560,13 +694,19 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 				? pageable.getSort().get().findFirst().get().getDirection().name()
 				: "ASC";
 
-		// User ID condition
+		// User ID condition - Adjusted to include OR logic for JSONB filter
 		String userCondition = "";
-		if (!userIds.isEmpty()) {
-			userCondition = " AND created_by IN (:userIds)";
+		if (!userIds.isEmpty() || (accountOwnerValues != null && !accountOwnerValues.isEmpty())) {
+			String joinedAccountOwnerValues = accountOwnerValues.stream()
+					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping quotes
+					.collect(Collectors.joining(", "));
+
+			String jsonBFilter = " OR account_submission_data->>'accountOwner' IN (" + joinedAccountOwnerValues + ")";
+			userCondition = userIds.isEmpty() ? jsonBFilter :
+					String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
 		}
 
-		// Build the complete query string with user filter and excluding NULLs
+		// Build the complete query string with user filter, JSONB filter, and excluding NULLs
 		String queryString = String.format(
 				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
 				userCondition, orderByClause, sortDirection);
@@ -585,7 +725,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		// Get the result list
 		List<AccountEntity> resultList = query.getResultList();
 
-		// Build the count query string
+		// Build the count query string with similar conditions for accurate pagination
 		String countQueryString = String.format(
 				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s",
 				userCondition);
@@ -604,9 +744,96 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		return new PageImpl<>(resultList, pageable, countResult);
 	}
 
+//	@Override
+//	public Page<AccountEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
+//			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
+//
+//		// Determine if sortBy is a regular column or a JSONB column
+//		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+//				: "updated_at";
+//		String orderByClause;
+//		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+//			String[] parts = sortBy.split("\\.");
+//			String jsonColumnName = parts[0];
+//			String jsonKey = parts[1];
+//			orderByClause = String.format("(%s->>'%s')", jsonColumnName, jsonKey);
+//		} else {
+//			orderByClause = sortBy;
+//		}
+//
+//		// Extract sort direction from pageable
+//		String sortDirection = pageable.getSort().isSorted()
+//				? pageable.getSort().get().findFirst().get().getDirection().name()
+//				: "ASC";
+//
+//		// Build the dynamic search conditions based on searchFields
+//		StringBuilder searchConditions = new StringBuilder();
+//		for (int i = 0; i < searchFields.size(); i++) {
+//			String field = searchFields.get(i);
+//			if (field.contains(".")) { // assuming field is in the format "jsonColumn.jsonKey"
+//				String[] parts = field.split("\\.");
+//				String jsonColumnName = parts[0];
+//				String jsonKey = parts[1];
+//				searchConditions.append(String.format(" OR (%s->>'%s') ILIKE :searchTerm ", jsonColumnName, jsonKey));
+//			} else {
+//				searchConditions.append(String.format(" OR CAST(%s AS TEXT) ILIKE :searchTerm ", field));
+//			}
+//		}
+//
+//		// Remove the leading " OR " from the searchConditions
+//		if (searchConditions.length() > 0) {
+//			searchConditions.delete(0, 4);
+//		}
+//
+//		// User ID condition
+//		String userCondition = "";
+//		if (!userIds.isEmpty()) {
+//			userCondition = " AND created_by IN (:userIds)";
+//		}
+//
+//		// Build the complete query string
+//		String queryString = String.format(
+//				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
+//				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+//
+//		// Create and execute the query
+//		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
+//		query.setParameter("isDeleted", isDeleted);
+//		query.setParameter("isDraft", isDraft);
+//		query.setParameter("isActive", isActive);
+//		if (!userIds.isEmpty()) {
+//			query.setParameter("userIds", userIds);
+//		}
+//		query.setParameter("searchTerm", "%" + searchTerm + "%");
+//		query.setFirstResult((int) pageable.getOffset());
+//		query.setMaxResults(pageable.getPageSize());
+//
+//		// Get the result list
+//		List<AccountEntity> resultList = query.getResultList();
+//
+//		// Build the count query string
+//		String countQueryString = String.format(
+//				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s)",
+//				userCondition, searchConditions.toString());
+//
+//		// Create and execute the count query
+//		Query countQuery = entityManager.createNativeQuery(countQueryString);
+//		countQuery.setParameter("isDeleted", isDeleted);
+//		countQuery.setParameter("isDraft", isDraft);
+//		countQuery.setParameter("isActive", isActive);
+//		if (!userIds.isEmpty()) {
+//			countQuery.setParameter("userIds", userIds);
+//		}
+//		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
+//		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+//
+//		// Create and return a Page object
+//		return new PageImpl<>(resultList, pageable, countResult);
+//	}
+
 	@Override
 	public Page<AccountEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
+			Boolean isDraft, Boolean isActive,List<String> accountOwnerValues, Pageable pageable, List<String> searchFields, String searchTerm) {
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -645,10 +872,16 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 			searchConditions.delete(0, 4);
 		}
 
-		// User ID condition
+		// User ID condition - Adjusted to include OR logic for JSONB filter
 		String userCondition = "";
-		if (!userIds.isEmpty()) {
-			userCondition = " AND created_by IN (:userIds)";
+		if (!userIds.isEmpty() || (accountOwnerValues != null && !accountOwnerValues.isEmpty())) {
+			String joinedAccountOwnerValues = accountOwnerValues.stream()
+					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping quotes
+					.collect(Collectors.joining(", "));
+
+			String jsonBFilter = " OR account_submission_data->>'accountOwner' IN (" + joinedAccountOwnerValues + ")";
+			userCondition = userIds.isEmpty() ? jsonBFilter :
+					String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
 		}
 
 		// Build the complete query string
@@ -693,7 +926,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 	@Override
 	public Page<AccountEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
+			Boolean isDraft, Boolean isActive, List<String> accountOwnerValues, Pageable pageable, List<String> searchFields, String searchTerm) {
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -734,8 +967,14 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 		// User ID condition
 		String userCondition = "";
-		if (!userIds.isEmpty()) {
-			userCondition = " AND created_by IN (:userIds)";
+		if (!userIds.isEmpty() || (accountOwnerValues != null && !accountOwnerValues.isEmpty())) {
+			String joinedAccountOwnerValues = accountOwnerValues.stream()
+					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping quotes
+					.collect(Collectors.joining(", "));
+
+			String jsonBFilter = " OR account_submission_data->>'accountOwner' IN (" + joinedAccountOwnerValues + ")";
+			userCondition = userIds.isEmpty() ? jsonBFilter :
+					String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
 		}
 
 		// Build the complete query string
