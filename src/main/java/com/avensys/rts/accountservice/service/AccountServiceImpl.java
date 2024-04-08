@@ -138,7 +138,8 @@ public class AccountServiceImpl implements AccountService {
 	@Override
 	public List<CustomFieldsEntity> getAllCreatedCustomViews() {
 
-		List<CustomFieldsEntity> customfields = accountCustomFieldsRepository.findAllByUser(getUserId(), "Account",false);
+		List<CustomFieldsEntity> customfields = accountCustomFieldsRepository.findAllByUser(getUserId(), "Account",
+				false);
 		return customfields;
 	}
 
@@ -160,23 +161,20 @@ public class AccountServiceImpl implements AccountService {
 			throw new DuplicateResourceException(
 					messageSource.getMessage("error.customViewAlreadyDeleted", null, LocaleContextHolder.getLocale()));
 		}
-		
+
 		List<CustomFieldsEntity> selectedCustomView = accountCustomFieldsRepository.findAllByUser(getUserId(),
-				"Account",false);
+				"Account", false);
 		for (CustomFieldsEntity customView : selectedCustomView) {
 			if (customView.isSelected() == true) {
 				customView.setSelected(false);
 				accountCustomFieldsRepository.save(customView);
 			}
 		}
-		Optional<CustomFieldsEntity> customFieldsEntity = accountCustomFieldsRepository
-				.findById(id);
+		Optional<CustomFieldsEntity> customFieldsEntity = accountCustomFieldsRepository.findById(id);
 		customFieldsEntity.get().setSelected(true);
 		accountCustomFieldsRepository.save(customFieldsEntity.get());
-		
+
 		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity.get());
-		
-		
 
 	}
 
@@ -198,7 +196,7 @@ public class AccountServiceImpl implements AccountService {
 		}
 
 		List<CustomFieldsEntity> selectedCustomView = accountCustomFieldsRepository.findAllByUser(getUserId(),
-				"Account",false);
+				"Account", false);
 
 		if (selectedCustomView != null) {
 			for (CustomFieldsEntity customView : selectedCustomView) {
@@ -243,6 +241,7 @@ public class AccountServiceImpl implements AccountService {
 		customFieldsResponseDTO.setId(accountCustomFieldsEntity.getId());
 		return customFieldsResponseDTO;
 	}
+
 	@Override
 	public void softDelete(Long id) {
 		CustomFieldsEntity customFieldsEntity = accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
@@ -416,8 +415,12 @@ public class AccountServiceImpl implements AccountService {
 //            return null;
 //        }
 
-		List<AccountEntity> accountEntities = accountRepository
-				.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
+//		List<AccountEntity> accountEntities = accountRepository
+//				.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
+//
+		List<AccountEntity> accountEntities = accountRepository.findAllByIsDraftAndIsDeletedAndIsActive(false, false,
+				true);
+
 		if (accountEntities.isEmpty()) {
 			return null;
 		}
@@ -469,7 +472,7 @@ public class AccountServiceImpl implements AccountService {
 		Page<AccountEntity> accountEntitiesPage = null;
 
 		List<Long> userIds = new ArrayList<>();
-		List <String> userNamesEmail = new ArrayList<>();
+		List<String> userNamesEmail = new ArrayList<>();
 		if (!isGetAll) {
 			userIds = userUtil.getUsersIdUnderManager();
 			userNamesEmail = userUtil.getUserNameEmailUnderManager();
@@ -504,7 +507,7 @@ public class AccountServiceImpl implements AccountService {
 
 		Page<AccountEntity> accountEntitiesPage = null;
 
-		List <String> userNamesEmail = new ArrayList<>();
+		List<String> userNamesEmail = new ArrayList<>();
 		List<Long> userIds = new ArrayList<>();
 		if (!isGetAll) {
 			userIds = userUtil.getUsersIdUnderManager();

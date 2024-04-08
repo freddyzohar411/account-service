@@ -30,8 +30,8 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Integer>
 
     @Query(value = "SELECT a FROM account a WHERE a.id = ?1 AND a.isDraft = ?2 AND a.isActive = ?3")
     Optional<AccountEntity> findByIdAndDraft(Integer id, boolean draft, boolean isActive);
-    
-    
-    
+
+    @Query(value = "SELECT a FROM account a WHERE a.isDraft = ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
+    Optional<AccountEntity> findByAllByIsDraftAndIsDeletedAndIsActive(boolean draft, boolean isDeleted, boolean isActive);
 
 }
