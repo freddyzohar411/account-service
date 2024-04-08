@@ -34,5 +34,8 @@ public interface UserAPIClient {
     @GetMapping("/users-under-manager")
     HttpResponse getUsersUnderManager();
 
+    @GetMapping("/users-under-manager-entity")
+    HttpResponse getUsersUnderManagerEntity();
+
 }
 

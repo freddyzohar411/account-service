@@ -22,21 +22,20 @@ public interface CustomAccountRepository {
 	Page<AccountEntity> findAllByOrderByAndSearchNumeric(Integer userId, Boolean isDeleted, Boolean isDraft,
 			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm);
 
-	List<AccountEntity> getAllAccountsNameWithSearch(String query, Integer userId, Boolean isDeleted,
-			Boolean isDraft);
+	List<AccountEntity> getAllAccountsNameWithSearch(String query, Integer userId, Boolean isDeleted, Boolean isDraft);
 
 	// Check only user id
-	Page<AccountEntity>findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean
-			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
+	Page<AccountEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isDraft,
+			Boolean isActive, List<String> accountOwnerValues, Pageable pageable);
 
-	Page<AccountEntity>findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean
-			isDeleted, Boolean isDraft,Boolean isActive,Pageable pageable);
+	Page<AccountEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isDraft,
+			Boolean isActive, List<String> accountOwnerValue, Pageable pageable);
 
-	Page<AccountEntity>findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds,
-			Boolean isDeleted, Boolean isDraft,Boolean isActive, Pageable pageable,List<String>
-			searchFields, String searchTerm);
+	Page<AccountEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
+			Boolean isDraft, Boolean isActive, List<String> accountOwnerValue, Pageable pageable,
+			List<String> searchFields, String searchTerm);
 
-	Page<AccountEntity>findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds,
-			Boolean isDeleted, Boolean isDraft, Boolean isActive,Pageable pageable,List<String>
-			searchFields, String searchTerm);
+	Page<AccountEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
+			Boolean isDraft, Boolean isActive, List<String> accountOwnerValue, Pageable pageable,
+			List<String> searchFields, String searchTerm);
 }

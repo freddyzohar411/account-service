@@ -2,15 +2,12 @@ package com.avensys.rts.accountservice.util;
 
 import java.util.*;
 
+import com.avensys.rts.accountservice.payloadnewresponse.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.avensys.rts.accountservice.APIClient.UserAPIClient;
 import com.avensys.rts.accountservice.customresponse.HttpResponse;
-import com.avensys.rts.accountservice.payloadnewresponse.user.ModuleResponseDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.user.RoleResponseDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.user.UserDetailsResponseDTO;
-import com.avensys.rts.accountservice.payloadnewresponse.user.UserGroupResponseDTO;
 
 @Service
 public class UserUtil {
@@ -132,6 +129,21 @@ public class UserUtil {
 		HttpResponse userResponse = userAPIClient.getUserDetail();
 		UserDetailsResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserDetailsResponseDTO.class);
 		return userData;
+	}
+
+	public String getUserNameEmail() {
+		UserDetailsResponseDTO userDetails = getUserDetails();
+		return userDetails.getFirstName() + " " + userDetails.getLastName() + " (" + userDetails.getEmail() + ")";
+	}
+
+	public List<String> getUserNameEmailUnderManager() {
+		HttpResponse response = userAPIClient.getUsersUnderManagerEntity();
+		UserResponseListDTO userDetails = MappingUtil.mapClientBodyToClass(response.getData(), UserResponseListDTO.class);
+		List<String> userNames = new ArrayList<>();
+		for (UserResponseDTO user : userDetails.getUsers()) {
+			userNames.add(user.getFirstName() + " " + user.getLastName() + " (" + user.getEmail() + ")");
+		}
+		return userNames;
 	}
 
 	/**
