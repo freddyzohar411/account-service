@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
@@ -32,13 +33,10 @@ import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO;
 import com.avensys.rts.accountservice.service.AccountServiceImpl;
 import com.avensys.rts.accountservice.util.ResponseUtil;
+import com.avensys.rts.accountservice.util.UserUtil;
 
 import jakarta.validation.Valid;
 
-/**
- * Author: Koh He Xiang This is the new controller class for the accounts that
- * works with dynamic forms
- */
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/accounts")
@@ -47,6 +45,9 @@ public class AccountController {
 	private final Logger log = LoggerFactory.getLogger(AccountController.class);
 	private final AccountServiceImpl accountService;
 	private final MessageSource messageSource;
+
+	@Autowired
+	private UserUtil userUtil;
 
 	public AccountController(AccountServiceImpl accountService, MessageSource messageSource) {
 		this.accountService = accountService;
@@ -150,35 +151,6 @@ public class AccountController {
 				messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
-	/**
-	 * Get all accounts field for all forms related to accounts with search and
-	 * pagination
-	 *
-	 * @param accountListingRequestDTO
-	 * @return
-	 */
-	@RequiresAllPermissions({ Permission.ACCOUNT_READ })
-	@PostMapping("/listing")
-	public ResponseEntity<Object> getAccountListing(@RequestBody AccountListingRequestDTO accountListingRequestDTO) {
-		log.info("Account get all fields: Controller");
-		Integer page = accountListingRequestDTO.getPage();
-		Integer pageSize = accountListingRequestDTO.getPageSize();
-		String sortBy = accountListingRequestDTO.getSortBy();
-		String sortDirection = accountListingRequestDTO.getSortDirection();
-		String searchTerm = accountListingRequestDTO.getSearchTerm();
-		List<String> searchFields = accountListingRequestDTO.getSearchFields();
-		if (searchTerm == null || searchTerm.isEmpty()) {
-			return ResponseUtil.generateSuccessResponse(
-					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, false), HttpStatus.OK,
-					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
-		}
-		return ResponseUtil.generateSuccessResponse(
-				accountService.getAccountListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-						searchFields, false),
-				HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
-	}
-
 	@RequiresAllPermissions({ Permission.ACCOUNT_READ })
 	@PostMapping("/listing/all")
 	public ResponseEntity<Object> getAccountListingAdmin(
@@ -189,15 +161,16 @@ public class AccountController {
 		String sortBy = accountListingRequestDTO.getSortBy();
 		String sortDirection = accountListingRequestDTO.getSortDirection();
 		String searchTerm = accountListingRequestDTO.getSearchTerm();
+		Boolean isAdmin = userUtil.checkIsAdmin();
 		List<String> searchFields = accountListingRequestDTO.getSearchFields();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, true), HttpStatus.OK,
+					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, isAdmin), HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
 		return ResponseUtil.generateSuccessResponse(
 				accountService.getAccountListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-						searchFields, true),
+						searchFields, isAdmin),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
@@ -315,39 +288,28 @@ public class AccountController {
 		return ResponseUtil.generateSuccessResponse(accountService.getAllCreatedCustomViews(), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-	
+
 	@GetMapping("/customView")
 	public ResponseEntity<Object> getSelectCustomView() {
 		log.info("Account selected custom view: Controller");
 		return ResponseUtil.generateSuccessResponse(accountService.getSelectedCustomView(), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-	
+
 	@PutMapping("/customView/update/{id}")
 	public ResponseEntity<Object> updateCustomView(@PathVariable Long id) {
 		log.info("Account custom view update: Controller");
 		CustomFieldsResponseDTO response = accountService.updateCustomView(id);
-		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
+		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK, messageSource
+				.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
 	}
-	
+
 	@DeleteMapping("/customView/delete/{id}")
 	public ResponseEntity<Object> softDeleteCustomView(@PathVariable Long id) {
 		log.info("Custom view soft delete: Controller");
 		accountService.softDelete(id);
-		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource
+				.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
 	}
-	
-	/*
-	 * @GetMapping("/cusomtView/{id}") public ResponseEntity<Object>
-	 * getCusomView(@PathVariable Long id) {
-	 * log.info("Account custom view get: Controller"); CustomFieldsResponseDTO
-	 * cusotm = accountService.getAccountCusotmView(id); return
-	 * ResponseUtil.generateSuccessResponse(cusotm, HttpStatus.OK,
-	 * messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW_SUCCESS, null,
-	 * LocaleContextHolder.getLocale())); }
-	 */
-	
 
 }
