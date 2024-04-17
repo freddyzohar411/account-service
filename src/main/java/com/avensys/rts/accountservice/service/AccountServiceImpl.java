@@ -144,18 +144,6 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public CustomFieldsResponseDTO getSelectedCustomView() {
-		CustomFieldsEntity selectedCustomView = accountCustomFieldsRepository.findByUserAndType(getUserId(), "Account");
-		if (selectedCustomView.isSelected() == true) {
-			selectedCustomView.setSelected(false);
-			accountCustomFieldsRepository.save(selectedCustomView);
-		}
-		CustomFieldsResponseDTO customFieldsResponseDTO = accountCustomFieldsRepository
-				.findAllByUserAndSelected(getUserId(), true);
-		return customFieldsResponseDTO;
-	}
-
-	@Override
 	public CustomFieldsResponseDTO updateCustomView(Long id) {
 		if (accountCustomFieldsRepository.findById(id).get().getIsDeleted()) {
 			throw new DuplicateResourceException(
