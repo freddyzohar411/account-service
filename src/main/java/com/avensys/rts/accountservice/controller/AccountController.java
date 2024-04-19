@@ -289,13 +289,6 @@ public class AccountController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
-	@GetMapping("/customView")
-	public ResponseEntity<Object> getSelectCustomView() {
-		log.info("Account selected custom view: Controller");
-		return ResponseUtil.generateSuccessResponse(accountService.getSelectedCustomView(), HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
-	}
-
 	@PutMapping("/customView/update/{id}")
 	public ResponseEntity<Object> updateCustomView(@PathVariable Long id) {
 		log.info("Account custom view update: Controller");

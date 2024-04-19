@@ -17,54 +17,56 @@ import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO;
 
 public interface AccountService {
-    AccountNewResponseDTO createAccount(AccountRequestDTO accountRequest);
-    //new
-    CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO);
-    
-    List<CustomFieldsEntity> getAllCreatedCustomViews();
-    
-    CustomFieldsResponseDTO getSelectedCustomView();
-    
-    CustomFieldsResponseDTO updateCustomView(Long id);
-    
-    public void softDelete(Long id);
-    
-   // CustomFieldsResponseDTO getAccountCusotmView(Long id);
+	AccountNewResponseDTO createAccount(AccountRequestDTO accountRequest);
 
-    AccountNewResponseDTO getAccount(Integer id);
+	// new
+	CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO);
 
-    AccountNewResponseDTO getAccountIfDraft();
+	List<CustomFieldsEntity> getAllCreatedCustomViews();
 
-    AccountNewResponseDTO updateAccount(Integer id, AccountRequestDTO accountRequest);
+	CustomFieldsResponseDTO updateCustomView(Long id);
 
-    /**
-     * This method is used to get all accounts name
-     * @return
-     */
-    List<AccountNameResponseDTO> getAllAccountsName();
+	public void softDelete(Long id);
 
-    List<AccountNameResponseDTO> getAllAccountsNameAll();
+	// CustomFieldsResponseDTO getAccountCusotmView(Long id);
 
-    List<Map<String, String>> getAllAccountsFields();
+	AccountNewResponseDTO getAccount(Integer id);
 
-    Set<FieldInformation> getAllAccountsFieldsNew();
+	AccountNewResponseDTO getAccountIfDraft();
 
-    AccountListingResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy, String sortDirection, Boolean isGetAll);
+	AccountNewResponseDTO updateAccount(Integer id, AccountRequestDTO accountRequest);
 
-    AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy, String sortDirection, String searchTerm, List<String>searchFields, Boolean isGetAll);
+	/**
+	 * This method is used to get all accounts name
+	 * 
+	 * @return
+	 */
+	List<AccountNameResponseDTO> getAllAccountsName();
 
-    void deleteDraftAccount(Integer accountId);
+	List<AccountNameResponseDTO> getAllAccountsNameAll();
 
-    void softDeleteAccount(Integer accountId);
+	List<Map<String, String>> getAllAccountsFields();
 
-    List<AccountEntity> getAllAccountsNameWithSearch(String query);
+	Set<FieldInformation> getAllAccountsFieldsNew();
 
-    List<AccountEntity> getAllAccountsByUser(boolean draft, boolean deleted);
+	AccountListingResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy, String sortDirection,
+			Boolean isGetAll);
 
-    AccountListingDataDTO getAccountByIdData(Integer accountId);
+	AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy,
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll);
 
-    HashMap<String, List<HashMap<String, String>>> getAllAccountsFieldsAll();
+	void deleteDraftAccount(Integer accountId);
 
-    HashMap<String, Object> getAccountByIdDataAll(Integer candidateId);
+	void softDeleteAccount(Integer accountId);
+
+	List<AccountEntity> getAllAccountsNameWithSearch(String query);
+
+	List<AccountEntity> getAllAccountsByUser(boolean draft, boolean deleted);
+
+	AccountListingDataDTO getAccountByIdData(Integer accountId);
+
+	HashMap<String, List<HashMap<String, String>>> getAllAccountsFieldsAll();
+
+	HashMap<String, Object> getAccountByIdDataAll(Integer candidateId);
 
 }
