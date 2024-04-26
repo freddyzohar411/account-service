@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.avensys.rts.accountservice.payloadnewrequest.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +33,6 @@ import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
 import com.avensys.rts.accountservice.exception.DuplicateResourceException;
 import com.avensys.rts.accountservice.model.AccountExtraData;
 import com.avensys.rts.accountservice.model.FieldInformation;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.CommercialRequest;
-import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.FormSubmissionsRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingDataDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNameResponseDTO;
@@ -670,6 +667,25 @@ public class AccountServiceImpl implements AccountService {
 				MappingUtil.convertObjectToJsonNode(accountInstructionData, "submissionData"));
 
 		return accountData;
+	}
+
+	@Override
+	public void softDeleteAccounts(AccountListingDeleteRequestDTO accountListingDeleteRequestDTO) {
+		if (accountListingDeleteRequestDTO.getAccountIds().isEmpty()) {
+			throw new RuntimeException("No account selected");
+		}
+		List<AccountEntity> accountEntities = accountRepository
+				.findAllByIdsAndDraftAndDeleted(accountListingDeleteRequestDTO.getAccountIds(), false, false, true);
+
+		if (accountEntities.isEmpty()) {
+			throw new RuntimeException("No account found");
+		}
+
+		for (AccountEntity accountEntity : accountEntities) {
+			accountEntity.setIsDeleted(true);
+		}
+
+		accountRepository.saveAll(accountEntities);
 	}
 
 	private JsonNode getAccountInfoByIDJsonNode(Integer accountId) {
