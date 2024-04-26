@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.avensys.rts.accountservice.payloadnewrequest.AccountListingDeleteRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -310,6 +311,14 @@ public class AccountController {
 		accountService.softDelete(id);
 		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource
 				.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
+	}
+
+	@PostMapping("/listing/delete")
+	public ResponseEntity<Object> deleteAccountListing(@RequestBody AccountListingDeleteRequestDTO accountListingDeleteRequestDTO) {
+		log.info("Account listing delete: Controller");
+		accountService.softDeleteAccounts(accountListingDeleteRequestDTO);
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 }

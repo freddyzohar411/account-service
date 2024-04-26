@@ -8,6 +8,7 @@ import java.util.Set;
 import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
 import com.avensys.rts.accountservice.model.FieldInformation;
+import com.avensys.rts.accountservice.payloadnewrequest.AccountListingDeleteRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingDataDTO;
@@ -66,5 +67,7 @@ public interface AccountService {
     HashMap<String, List<HashMap<String, String>>> getAllAccountsFieldsAll();
 
     HashMap<String, Object> getAccountByIdDataAll(Integer candidateId);
+
+    void softDeleteAccounts(AccountListingDeleteRequestDTO accountListingDeleteRequestDTO);
 
 }

@@ -34,4 +34,7 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Integer>
     @Query(value = "SELECT a FROM account a WHERE a.isDraft = ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
     Optional<AccountEntity> findByAllByIsDraftAndIsDeletedAndIsActive(boolean draft, boolean isDeleted, boolean isActive);
 
+    // Find all accounts by a List of Ids where isDraft = false and isDeleted = false and isActive = true
+    @Query(value = "SELECT a FROM account a WHERE a.id IN (?1) AND a.isDraft = ?2 AND a.isDeleted = ?3 AND a.isActive = ?4")
+    List<AccountEntity> findAllByIdsAndDraftAndDeleted(List<Integer> accountIds, boolean draft, boolean isDeleted, boolean isActive);
 }
