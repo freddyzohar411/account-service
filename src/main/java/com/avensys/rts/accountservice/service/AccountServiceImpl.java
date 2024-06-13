@@ -10,10 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.avensys.rts.accountservice.payloadnewrequest.*;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -33,6 +30,11 @@ import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
 import com.avensys.rts.accountservice.exception.DuplicateResourceException;
 import com.avensys.rts.accountservice.model.AccountExtraData;
 import com.avensys.rts.accountservice.model.FieldInformation;
+import com.avensys.rts.accountservice.payloadnewrequest.AccountListingDeleteRequestDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.CommercialRequest;
+import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.FormSubmissionsRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingDataDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNameResponseDTO;
@@ -54,9 +56,7 @@ import jakarta.transaction.Transactional;
 @Service
 public class AccountServiceImpl implements AccountService {
 
-	private final String ACTIVE_STATUS = "active";
 	private final String ACCOUNT_TYPE = "account_account";
-	private final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
 
 	@Autowired
 	private AccountRepository accountRepository;
@@ -112,9 +112,6 @@ public class AccountServiceImpl implements AccountService {
 			DocumentResponseDTO documentData = MappingUtil.mapClientBodyToClass(documentResponse.getData(),
 					DocumentResponseDTO.class);
 		}
-//		else {
-//			throw new RequiredDocumentMissingException("Upload agreement document is required");
-//		}
 
 		// Save form data to form submission microservice
 		FormSubmissionsRequestDTO formSubmissionsRequestDTO = accountNewRequestDTOToFormSubmissionRequestDTO(
@@ -163,12 +160,6 @@ public class AccountServiceImpl implements AccountService {
 
 	}
 
-	/*
-	 * @Override public CustomFieldsResponseDTO getAccountCusotmView(Long id) {
-	 * Optional<CustomFieldsEntity> customFieldsResponseDTO =
-	 * accountCustomFieldsRepository.findById(id); return customFieldsResponseDTO; }
-	 */
-
 	@Override
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
 
@@ -202,7 +193,6 @@ public class AccountServiceImpl implements AccountService {
 		customFieldsEntity.setName(customFieldsRequestDTO.getName());
 		customFieldsEntity.setType(customFieldsRequestDTO.getType());
 		customFieldsEntity.setSelected(true);
-		// List<String> columnNames = customFieldsRequestDTO.getColumnName();
 
 		// converting list of string to comma saparated string
 		String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
@@ -291,16 +281,7 @@ public class AccountServiceImpl implements AccountService {
 
 		// Update document data
 		if (accountRequest.getUploadAgreement() != null) {
-//			CommercialRequest.DocumentRequestDTO documentRequestDTO = new CommercialRequest.DocumentRequestDTO();
-//			System.out.println(("OKAY"));
-//			// Save document and tag to account entity
-//			documentRequestDTO.setEntityId(accountEntity.getId());
-//			documentRequestDTO.setEntityType(ACCOUNT_TYPE);
-//
-//			documentRequestDTO.setFile(accountRequest.getUploadAgreement());
-//			HttpResponse documentResponse = documentAPIClient.updateDocument(documentRequestDTO);
-//			DocumentResponseDTO documentData = MappingUtil.mapClientBodyToClass(documentResponse.getData(),
-//					DocumentResponseDTO.class);
+
 			// Delete old file and save new file
 			HttpResponse documentResponse = documentAPIClient.deleteDocumentsByEntityTypeAndEntityId("account_account",
 					accountEntity.getId());
@@ -395,14 +376,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public Set<FieldInformation> getAllAccountsFieldsNew() {
-//        List<AccountNewEntity> accountEntities = accountRepository.findAllByUserAndDeleted(getUserId(), false, true);
-//        if (accountEntities.isEmpty()) {
-//            return null;
-//        }
 
-//		List<AccountEntity> accountEntities = accountRepository
-//				.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
-//
 		List<AccountEntity> accountEntities = accountRepository.findAllByIsDraftAndIsDeletedAndIsActive(false, false,
 				true);
 
@@ -567,22 +541,6 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public List<AccountEntity> getAllAccountsNameWithSearch(String query) {
-		// Regex to get the field name, operator and value
-//        String regex = "(\\w+)([><]=?|!=|=)(\\w+)";
-//
-//        Pattern pattern = Pattern.compile(regex);
-//        Matcher matcher = pattern.matcher(query);
-//
-//        while (matcher.find()) {
-//            String fieldName = matcher.group(1);
-//            String operator = matcher.group(2);
-//            String value = matcher.group(3);
-//
-//            // Now you have fieldName, operator, and value for each key-value pair
-//            System.out.println("Field Name: " + fieldName);
-//            System.out.println("Operator: " + operator);
-//            System.out.println("Value: " + value);
-//        }
 		List<AccountEntity> accountEntities = accountRepository.getAllAccountsNameWithSearch(query, getUserId(), false,
 				false);
 		return accountEntities;
