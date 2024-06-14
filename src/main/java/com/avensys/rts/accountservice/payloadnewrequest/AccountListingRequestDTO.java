@@ -22,4 +22,5 @@ public class AccountListingRequestDTO {
 	private String sortDirection;
 	private String searchTerm;
 	private List<String> searchFields;
+	private Boolean isDownload = false;
 }

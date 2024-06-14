@@ -416,7 +416,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AccountListingResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection, Boolean isGetAll) {
+			String sortDirection, Boolean isGetAll, Boolean isDownload) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -426,7 +426,13 @@ public class AccountServiceImpl implements AccountService {
 			sortBy = "updated_at";
 			direction = Sort.Direction.DESC;
 		}
-		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+		PageRequest pageRequest = null;
+		if (isDownload) {
+			pageRequest = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(direction, sortBy));
+		} else {
+			pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+		}
 
 		Page<AccountEntity> accountEntitiesPage = null;
 
@@ -452,7 +458,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll) {
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll, Boolean isDownload) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -462,7 +468,13 @@ public class AccountServiceImpl implements AccountService {
 			sortBy = "updated_at";
 			direction = Sort.Direction.DESC;
 		}
-		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+		PageRequest pageRequest = null;
+		if (isDownload) {
+			pageRequest = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(direction, sortBy));
+		} else {
+			pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+		}
 
 		Page<AccountEntity> accountEntitiesPage = null;
 

@@ -51,10 +51,10 @@ public interface AccountService {
 	Set<FieldInformation> getAllAccountsFieldsNew();
 
 	AccountListingResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy, String sortDirection,
-			Boolean isGetAll);
+			Boolean isGetAll, Boolean isDownload);
 
 	AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll);
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll, Boolean isDownload);
 
 	void deleteDraftAccount(Integer accountId);
 
@@ -70,6 +70,6 @@ public interface AccountService {
 
 	HashMap<String, Object> getAccountByIdDataAll(Integer candidateId);
 
-    void softDeleteAccounts(AccountListingDeleteRequestDTO accountListingDeleteRequestDTO);
+	void softDeleteAccounts(AccountListingDeleteRequestDTO accountListingDeleteRequestDTO);
 
 }

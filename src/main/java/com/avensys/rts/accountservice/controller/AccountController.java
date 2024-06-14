@@ -163,15 +163,18 @@ public class AccountController {
 		String sortDirection = accountListingRequestDTO.getSortDirection();
 		String searchTerm = accountListingRequestDTO.getSearchTerm();
 		Boolean isAdmin = userUtil.checkIsAdmin();
+		Boolean isDownload = accountListingRequestDTO.getIsDownload();
+
 		List<String> searchFields = accountListingRequestDTO.getSearchFields();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, isAdmin), HttpStatus.OK,
+					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, isAdmin, isDownload),
+					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
 		return ResponseUtil.generateSuccessResponse(
 				accountService.getAccountListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-						searchFields, isAdmin),
+						searchFields, isAdmin, isDownload),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
@@ -307,7 +310,8 @@ public class AccountController {
 	}
 
 	@PostMapping("/listing/delete")
-	public ResponseEntity<Object> deleteAccountListing(@RequestBody AccountListingDeleteRequestDTO accountListingDeleteRequestDTO) {
+	public ResponseEntity<Object> deleteAccountListing(
+			@RequestBody AccountListingDeleteRequestDTO accountListingDeleteRequestDTO) {
 		log.info("Account listing delete: Controller");
 		accountService.softDeleteAccounts(accountListingDeleteRequestDTO);
 		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
