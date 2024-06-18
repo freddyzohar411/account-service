@@ -55,7 +55,7 @@ public interface AccountService {
 			Boolean isGetAll, Boolean isDownload, List<FilterDTO> filters);
 
 	AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll, Boolean isDownload);
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll, Boolean isDownload, List<FilterDTO> filters);
 
 	void deleteDraftAccount(Integer accountId);
 
@@ -73,4 +73,5 @@ public interface AccountService {
 
 	void softDeleteAccounts(AccountListingDeleteRequestDTO accountListingDeleteRequestDTO);
 
+	CustomFieldsEntity getCustomFieldsById(Long id);
 }

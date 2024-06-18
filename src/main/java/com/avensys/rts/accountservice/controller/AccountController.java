@@ -176,7 +176,7 @@ public class AccountController {
 		}
 		return ResponseUtil.generateSuccessResponse(
 				accountService.getAccountListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-						searchFields, isAdmin, isDownload),
+						searchFields, isAdmin, isDownload, filters),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
@@ -319,5 +319,13 @@ public class AccountController {
 		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
+
+	@GetMapping("/customView/{customViewId}")
+	public ResponseEntity<Object> getAccountCustomView(@PathVariable Long customViewId) {
+		log.info("Account get custom view: Controller");
+		return ResponseUtil.generateSuccessResponse(accountService.getCustomFieldsById(customViewId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
 
 }

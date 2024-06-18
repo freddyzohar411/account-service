@@ -174,7 +174,6 @@ public class AccountServiceImpl implements AccountService {
 					accountCustomFieldsRepository.save(customView);
 				}
 			}
-
 		}
 		CustomFieldsEntity accountCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
 				customFieldsRequestDTO);
@@ -461,7 +460,8 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll, Boolean isDownload) {
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll, Boolean isDownload,
+			List<FilterDTO> filters) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -491,10 +491,10 @@ public class AccountServiceImpl implements AccountService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false, false,
-					true, userNamesEmail, pageRequest, searchFields, searchTerm);
+					true, userNamesEmail, pageRequest, searchFields, searchTerm, filters);
 		} catch (Exception e) {
 			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false, false,
-					true, userNamesEmail, pageRequest, searchFields, searchTerm);
+					true, userNamesEmail, pageRequest, searchFields, searchTerm, filters);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
@@ -659,6 +659,12 @@ public class AccountServiceImpl implements AccountService {
 		}
 
 		accountRepository.saveAll(accountEntities);
+	}
+
+	@Override
+	public CustomFieldsEntity getCustomFieldsById(Long id) {
+		return accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
 	}
 
 	private JsonNode getAccountInfoByIDJsonNode(Integer accountId) {

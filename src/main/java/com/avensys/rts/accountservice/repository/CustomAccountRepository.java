@@ -34,9 +34,9 @@ public interface CustomAccountRepository {
 
 	Page<AccountEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, List<String> accountOwnerValue, Pageable pageable,
-			List<String> searchFields, String searchTerm);
+			List<String> searchFields, String searchTerm, List<FilterDTO> filters);
 
 	Page<AccountEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, List<String> accountOwnerValue, Pageable pageable,
-			List<String> searchFields, String searchTerm);
+			List<String> searchFields, String searchTerm, List<FilterDTO> filters);
 }

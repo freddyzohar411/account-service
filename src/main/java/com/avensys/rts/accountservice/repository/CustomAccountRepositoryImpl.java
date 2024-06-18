@@ -701,7 +701,6 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		if (filters != null) {
 			if (!filters.isEmpty()) {
 				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
-				System.out.println("Filter Query: " + filterQuery);
 			}
 		}
 
@@ -863,7 +862,14 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 	@Override
 	public Page<AccountEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, List<String> accountOwnerValues, Pageable pageable,
-			List<String> searchFields, String searchTerm) {
+			List<String> searchFields, String searchTerm, List<FilterDTO> filters) {
+
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -917,8 +923,8 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
-				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) %s ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), filterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
@@ -937,8 +943,8 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s)",
-				userCondition, searchConditions.toString());
+				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s) %s",
+				userCondition, searchConditions.toString(), filterQuery);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -958,7 +964,14 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 	@Override
 	public Page<AccountEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isDraft, Boolean isActive, List<String> accountOwnerValues, Pageable pageable,
-			List<String> searchFields, String searchTerm) {
+			List<String> searchFields, String searchTerm, List<FilterDTO> filters) {
+
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -1012,8 +1025,8 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
-				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) %s ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), filterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
@@ -1032,8 +1045,8 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s)",
-				userCondition, searchConditions.toString());
+				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s) %s",
+				userCondition, searchConditions.toString(), filterQuery);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
