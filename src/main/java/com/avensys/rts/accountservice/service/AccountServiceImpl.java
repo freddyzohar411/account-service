@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.avensys.rts.accountservice.payloadnewrequest.*;
+import com.avensys.rts.accountservice.util.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -30,11 +32,6 @@ import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
 import com.avensys.rts.accountservice.exception.DuplicateResourceException;
 import com.avensys.rts.accountservice.model.AccountExtraData;
 import com.avensys.rts.accountservice.model.FieldInformation;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountListingDeleteRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.CommercialRequest;
-import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.FormSubmissionsRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingDataDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNameResponseDTO;
@@ -45,10 +42,6 @@ import com.avensys.rts.accountservice.payloadnewresponse.FormSubmissionsResponse
 import com.avensys.rts.accountservice.payloadnewresponse.UserResponseDTO;
 import com.avensys.rts.accountservice.repository.AccountCustomFieldsRepository;
 import com.avensys.rts.accountservice.repository.AccountRepository;
-import com.avensys.rts.accountservice.util.JwtUtil;
-import com.avensys.rts.accountservice.util.MappingUtil;
-import com.avensys.rts.accountservice.util.StringUtil;
-import com.avensys.rts.accountservice.util.UserUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.transaction.Transactional;
@@ -200,6 +193,11 @@ public class AccountServiceImpl implements AccountService {
 		// customFieldsEntity.setColumnName(MappingUtil.convertJsonNodeToJSONString(customFieldsRequestDTO.getColumnName()));
 		customFieldsEntity.setCreatedBy(getUserId());
 		customFieldsEntity.setUpdatedBy(getUserId());
+		// Get Filters
+		List<FilterDTO> filters = customFieldsRequestDTO.getFilters();
+		if (filters != null) {
+			customFieldsEntity.setFilters(JSONUtil.convertObjectToJsonNode(filters));
+		}
 		return accountCustomFieldsRepository.save(customFieldsEntity);
 	}
 

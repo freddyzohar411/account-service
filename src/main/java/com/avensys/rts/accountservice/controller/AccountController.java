@@ -1,10 +1,18 @@
 package com.avensys.rts.accountservice.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.avensys.rts.accountservice.payloadnewrequest.AccountListingDeleteRequestDTO;
+import aj.org.objectweb.asm.TypeReference;
+import com.avensys.rts.accountservice.payloadnewrequest.*;
+import com.avensys.rts.accountservice.util.JSONUtil;
+import com.avensys.rts.accountservice.util.MappingUtil;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +35,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.avensys.rts.accountservice.annotation.RequiresAllPermissions;
 import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.enums.Permission;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountListingRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO;
 import com.avensys.rts.accountservice.service.AccountServiceImpl;
@@ -281,6 +286,15 @@ public class AccountController {
 	@PostMapping("/save/customfields")
 	public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
 		log.info("Save Account customFields: Controller");
+//		System.out.println("CustomFieldsRequestDTO: " + customFieldsRequestDTO.getFilters());
+
+//		JsonNode jj = JSONUtil.convertObjectToJsonNode(customFieldsRequestDTO.getFilters());
+//
+//		List<FilterDTO> filters = MappingUtil.convertJsonNodeToList(jj, FilterDTO.class);
+//		for (FilterDTO f: filters) {
+//			System.out.println("FilterDTO: " + f.getField());
+//		}
+//		CustomFieldsResponseDTO customFieldsResponseDTO = null;
 		CustomFieldsResponseDTO customFieldsResponseDTO = accountService.saveCustomFields(customFieldsRequestDTO);
 		return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED,
 				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
