@@ -11,6 +11,7 @@ import com.avensys.rts.accountservice.model.FieldInformation;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountListingDeleteRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
 import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
+import com.avensys.rts.accountservice.payloadnewrequest.FilterDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingDataDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNameResponseDTO;
@@ -51,7 +52,7 @@ public interface AccountService {
 	Set<FieldInformation> getAllAccountsFieldsNew();
 
 	AccountListingResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy, String sortDirection,
-			Boolean isGetAll, Boolean isDownload);
+			Boolean isGetAll, Boolean isDownload, List<FilterDTO> filters);
 
 	AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy,
 			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll, Boolean isDownload);

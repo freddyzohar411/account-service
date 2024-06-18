@@ -7,8 +7,7 @@ import java.util.regex.Pattern;
 
 import aj.org.objectweb.asm.TypeReference;
 import com.avensys.rts.accountservice.payloadnewrequest.*;
-import com.avensys.rts.accountservice.util.JSONUtil;
-import com.avensys.rts.accountservice.util.MappingUtil;
+import com.avensys.rts.accountservice.util.*;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,8 +37,6 @@ import com.avensys.rts.accountservice.enums.Permission;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO;
 import com.avensys.rts.accountservice.service.AccountServiceImpl;
-import com.avensys.rts.accountservice.util.ResponseUtil;
-import com.avensys.rts.accountservice.util.UserUtil;
 
 import jakarta.validation.Valid;
 
@@ -169,11 +166,11 @@ public class AccountController {
 		String searchTerm = accountListingRequestDTO.getSearchTerm();
 		Boolean isAdmin = userUtil.checkIsAdmin();
 		Boolean isDownload = accountListingRequestDTO.getIsDownload();
-
+		List<FilterDTO> filters = accountListingRequestDTO.getFilters();
 		List<String> searchFields = accountListingRequestDTO.getSearchFields();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, isAdmin, isDownload),
+					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, isAdmin, isDownload, filters),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
@@ -286,15 +283,6 @@ public class AccountController {
 	@PostMapping("/save/customfields")
 	public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
 		log.info("Save Account customFields: Controller");
-//		System.out.println("CustomFieldsRequestDTO: " + customFieldsRequestDTO.getFilters());
-
-//		JsonNode jj = JSONUtil.convertObjectToJsonNode(customFieldsRequestDTO.getFilters());
-//
-//		List<FilterDTO> filters = MappingUtil.convertJsonNodeToList(jj, FilterDTO.class);
-//		for (FilterDTO f: filters) {
-//			System.out.println("FilterDTO: " + f.getField());
-//		}
-//		CustomFieldsResponseDTO customFieldsResponseDTO = null;
 		CustomFieldsResponseDTO customFieldsResponseDTO = accountService.saveCustomFields(customFieldsRequestDTO);
 		return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED,
 				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));

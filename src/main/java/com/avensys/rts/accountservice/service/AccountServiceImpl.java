@@ -212,6 +212,11 @@ public class AccountServiceImpl implements AccountService {
 		customFieldsResponseDTO.setType(accountCustomFieldsEntity.getType());
 		customFieldsResponseDTO.setUpdatedBy(accountCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(accountCustomFieldsEntity.getId());
+		// Get Filters
+		JsonNode filters = accountCustomFieldsEntity.getFilters();
+		if (filters != null) {
+			customFieldsResponseDTO.setFilters(MappingUtil.convertJsonNodeToList(filters, FilterDTO.class));
+		}
 		return customFieldsResponseDTO;
 	}
 
@@ -414,7 +419,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AccountListingResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection, Boolean isGetAll, Boolean isDownload) {
+			String sortDirection, Boolean isGetAll, Boolean isDownload, List<FilterDTO> filters) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -445,10 +450,10 @@ public class AccountServiceImpl implements AccountService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			accountEntitiesPage = accountRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
-					userNamesEmail, pageRequest);
+					userNamesEmail, pageRequest, filters);
 		} catch (Exception e) {
 			accountEntitiesPage = accountRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
-					userNamesEmail, pageRequest);
+					userNamesEmail, pageRequest, filters);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);

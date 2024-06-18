@@ -14,4 +14,5 @@ public class FilterDTO {
 	private String field;
 	private String label;
 	private String value;
+	private String operator;
 }

@@ -16,6 +16,5 @@ public class AccountListingResponseDTO {
 	private Long totalElements;
 	private Integer page;
 	private Integer pageSize;
-
 	private List<AccountListingDataDTO> accounts;
 }
