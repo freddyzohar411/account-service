@@ -1,14 +1,6 @@
 package com.avensys.rts.accountservice.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import com.avensys.rts.accountservice.payloadnewrequest.*;
 import com.avensys.rts.accountservice.util.*;
@@ -45,6 +37,8 @@ import com.avensys.rts.accountservice.repository.AccountRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.transaction.Transactional;
+
+import javax.swing.text.html.Option;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -662,9 +656,42 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public CustomFieldsEntity getCustomFieldsById(Long id) {
-		return accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+	public CustomFieldsResponseDTO getCustomFieldsById(Long id) {
+		CustomFieldsEntity customFieldsEntity = accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity);
+	}
+
+	@Override
+	public CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO) {
+//		if (accountCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+//			throw new DuplicateResourceException(
+//					messageSource.getMessage("error.customViewNametaken", null, LocaleContextHolder.getLocale()));
+//		}
+		CustomFieldsEntity customFieldsEntity = accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		if (!Objects.equals(customFieldsEntity.getName(), customFieldsRequestDTO.getName())
+				&& accountCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("error.customViewAlreadySelected", null, LocaleContextHolder.getLocale()));
+		}
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setSelected(customFieldsEntity.isSelected());
+		if (customFieldsRequestDTO.getColumnName() != null) {
+			if (!customFieldsRequestDTO.getColumnName().isEmpty()) {
+				String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
+				customFieldsEntity.setColumnName(columnNames);
+			}
+		}
+		customFieldsEntity.setUpdatedBy(getUserId());
+		List<FilterDTO> filters = customFieldsRequestDTO.getFilters();
+		if (filters != null) {
+			customFieldsEntity.setFilters(JSONUtil.convertObjectToJsonNode(filters));
+		}
+
+		// Save custom view
+		CustomFieldsEntity updatedCustomFieldEntity = accountCustomFieldsRepository.save(customFieldsEntity);
+		return customFieldsEntityToCustomFieldsResponseDTO(updatedCustomFieldEntity);
 	}
 
 	private JsonNode getAccountInfoByIDJsonNode(Integer accountId) {

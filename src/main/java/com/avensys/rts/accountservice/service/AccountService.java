@@ -73,5 +73,7 @@ public interface AccountService {
 
 	void softDeleteAccounts(AccountListingDeleteRequestDTO accountListingDeleteRequestDTO);
 
-	CustomFieldsEntity getCustomFieldsById(Long id);
+	CustomFieldsResponseDTO getCustomFieldsById(Long id);
+
+	CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO);
 }

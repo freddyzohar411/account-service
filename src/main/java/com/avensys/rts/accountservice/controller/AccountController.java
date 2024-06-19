@@ -170,7 +170,8 @@ public class AccountController {
 		List<String> searchFields = accountListingRequestDTO.getSearchFields();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, isAdmin, isDownload, filters),
+					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, isAdmin, isDownload,
+							filters),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
@@ -327,5 +328,14 @@ public class AccountController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	@PostMapping("/customView/edit/{customViewId}")
+	public ResponseEntity<Object> editAccountCustomView(@PathVariable Long customViewId,
+			@RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
+		log.info("Account edit custom view: Controller");
+		CustomFieldsResponseDTO customFieldsResponseDTO = accountService.editCustomFieldsById(customViewId,
+				customFieldsRequestDTO);
+		return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED,
+				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
+	}
 
 }
