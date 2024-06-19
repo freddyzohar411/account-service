@@ -2,7 +2,9 @@ package com.avensys.rts.accountservice.util;
 
 import com.avensys.rts.accountservice.payloadnewrequest.FilterDTO;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class QueryUtil {
 
@@ -23,6 +25,10 @@ public class QueryUtil {
 
 	public final static String BEFORE = "Before";
 	public final static String AFTER = "After";
+
+	public final static String IN = "In";
+
+	public final static String NOT_IN = "Not In";
 
 	public static String buildQueryFromFilters(List<FilterDTO> filters) {
 		if (filters == null || filters.isEmpty())
@@ -83,9 +89,16 @@ public class QueryUtil {
 				conditionString.append(String.format("(%s->>'%s') ILIKE '%%%s'", jsonColumnName, jsonKey, value));
 				break;
 			case IS_EMPTY:
-				conditionString.append(String.format("(%s->>'%s') IS NULL", jsonColumnName, jsonKey));
+				conditionString.append(String.format("(%s->>'%s') = ''", jsonColumnName, jsonKey));
 				break;
 			case IS_NOT_EMPTY:
+				conditionString.append(String.format("(%s->>'%s') IS NOT NULL AND (%s->>'%s') != ''", jsonColumnName,
+						jsonKey, jsonColumnName, jsonKey));
+				break;
+			case IS_NULL:
+				conditionString.append(String.format("(%s->>'%s') IS NULL", jsonColumnName, jsonKey));
+				break;
+			case IS_NOT_NULL:
 				conditionString.append(String.format("(%s->>'%s') IS NOT NULL", jsonColumnName, jsonKey));
 				break;
 			case GREATER_THAN:
@@ -97,6 +110,35 @@ public class QueryUtil {
 				conditionString.append(
 						String.format("CAST(NULLIF(%s->>'%s', '') AS DOUBLE PRECISION) < CAST(%s AS DOUBLE PRECISION)",
 								jsonColumnName, jsonKey, value));
+				break;
+			case BEFORE:
+				conditionString.append(
+						String.format("CAST(%s->>'%s' AS date) < CAST('%s' AS date)", jsonColumnName, jsonKey, value));
+				break;
+			case AFTER:
+				conditionString.append(
+						String.format("CAST(%s->>'%s' AS date) > CAST('%s' AS date)", jsonColumnName, jsonKey, value));
+				break;
+			case IN:
+				String[] values = value.split(",");
+				String formattedValues = Arrays.stream(values).map(v -> String.format("'%s'", v.trim()))
+						.collect(Collectors.joining(", "));
+				conditionString.append(
+						String.format("(%s->>'%s') = ANY (ARRAY[%s])", jsonColumnName, jsonKey, formattedValues));
+				break;
+			case NOT_IN:
+				String[] valuesNotIn = value.split(",");
+				String formattedValuesNotIn = Arrays.stream(valuesNotIn).map(v -> String.format("'%s'", v.trim()))
+						.collect(Collectors.joining(", "));
+				conditionString.append(
+						String.format("(%s->>'%s') != ALL (ARRAY[%s])", jsonColumnName, jsonKey, formattedValuesNotIn));
+				break;
+			case IS_TRUE:
+				conditionString.append(String.format("CAST(%s->>'%s' AS boolean) = true", jsonColumnName, jsonKey));
+				break;
+			case IS_FALSE:
+				conditionString.append(String.format("CAST(%s->>'%s' AS boolean) = false", jsonColumnName, jsonKey));
+				break;
 			}
 		} else {
 			switch (condition) {
@@ -119,53 +161,51 @@ public class QueryUtil {
 				conditionString.append(String.format("%s ILIKE '%%%s'", column, value));
 				break;
 			case IS_EMPTY:
-				conditionString.append(String.format("%s IS NULL", column));
+				conditionString.append(String.format("%s = ''", column));
 				break;
 			case IS_NOT_EMPTY:
+				conditionString.append(String.format("%s IS NOT NULL AND %s != ''", column, column));
+				break;
+			case IS_NULL:
+				conditionString.append(String.format("%s IS NULL", column));
+				break;
+			case IS_NOT_NULL:
 				conditionString.append(String.format("%s IS NOT NULL", column));
 				break;
 			case GREATER_THAN:
-				conditionString.append(String.format("CAST(NULLIF(%s, '') AS DOUBLE PRECISION) > CAST(%s AS DOUBLE PRECISION)",
-						column, value));
+				conditionString.append(String.format(
+						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) > CAST(%s AS DOUBLE PRECISION)", column, value));
 				break;
 			case LESS_THAN:
-				conditionString.append(String.format("CAST(NULLIF(%s, '') AS DOUBLE PRECISION) < CAST(%s AS DOUBLE PRECISION)",
-						column, value));
+				conditionString.append(String.format(
+						"CAST(NULLIF(%s, '') AS DOUBLE PRECISION) < CAST(%s AS DOUBLE PRECISION)", column, value));
 				break;
+			case BEFORE:
+				conditionString.append(String.format("CAST(%s AS date) < CAST('%s' AS date)", column, value));
+				break;
+			case AFTER:
+				conditionString.append(String.format("CAST(%s AS date) > CAST('%s' AS date)", column, value));
+				break;
+			case IN:
+				String[] valuesIn = value.split(",");
+				String formattedValuesIn = Arrays.stream(valuesIn).map(v -> String.format("'%s'", v.trim()))
+						.collect(Collectors.joining(", "));
+				conditionString.append(String.format("%s IN (%s)", column, formattedValuesIn));
+				break;
+			case NOT_IN:
+				String[] valuesNotIn = value.split(",");
+				String formattedValuesNotIn = Arrays.stream(valuesNotIn).map(v -> String.format("'%s'", v.trim()))
+						.collect(Collectors.joining(", "));
+				conditionString.append(String.format("%s NOT IN (%s)", column, formattedValuesNotIn));
+				break;
+			case IS_TRUE:
+				conditionString.append(String.format("%s = true", column));
+				break;
+			case IS_FALSE:
+				conditionString.append(String.format("%s = false", column));
 			}
 		}
 		return conditionString.toString();
 	}
-
-//	private static String getSqlCondition(String condition) {
-//		switch (condition) {
-//		case EQUAL:
-//			return "=";
-//		case NOT_EQUAL:
-//			return "!=";
-//		case CONTAINS:
-//			return "ILIKE";
-//		case DOES_NOT_CONTAIN:
-//			return "NOT ILIKE";
-//		case STARTS_WITH:
-//			return "ILIKE";
-//		case ENDS_WITH:
-//			return "ILIKE";
-//		case IS_EMPTY:
-//			return "IS NULL";
-//		case IS_NOT_EMPTY:
-//			return "IS NOT NULL";
-//		case GREATER_THAN:
-//			return ">";
-//		case LESS_THAN:
-//			return "<";
-//		case IS_TRUE:
-//			return "IS TRUE";
-//		case IS_FALSE:
-//			return "IS FALSE";
-//		default:
-//			throw new IllegalArgumentException("Unknown condition: " + condition);
-//		}
-//	}
 
 }

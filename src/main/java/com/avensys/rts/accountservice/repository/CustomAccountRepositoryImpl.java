@@ -701,6 +701,7 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		if (filters != null) {
 			if (!filters.isEmpty()) {
 				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+				System.out.println("Filter Query: " + filterQuery);
 			}
 		}
 

@@ -664,10 +664,6 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO) {
-//		if (accountCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
-//			throw new DuplicateResourceException(
-//					messageSource.getMessage("error.customViewNametaken", null, LocaleContextHolder.getLocale()));
-//		}
 		CustomFieldsEntity customFieldsEntity = accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Custom view not found"));
 		if (!Objects.equals(customFieldsEntity.getName(), customFieldsRequestDTO.getName())
