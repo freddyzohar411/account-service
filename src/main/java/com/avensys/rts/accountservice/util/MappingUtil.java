@@ -135,7 +135,6 @@ public class MappingUtil {
 		}
 		return mergedNode;
 	}
-
    public static <T> List<T> convertJsonNodeToList(JsonNode jsonNode, Class<T> elementType) {
 	   ObjectMapper mapper = new ObjectMapper();
 		TypeFactory typeFactory = mapper.getTypeFactory();
