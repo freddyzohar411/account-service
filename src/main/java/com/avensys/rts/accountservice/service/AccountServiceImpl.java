@@ -118,7 +118,6 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public List<CustomFieldsEntity> getAllCreatedCustomViews() {
-
 		List<CustomFieldsEntity> customfields = accountCustomFieldsRepository.findAllByUser(getUserId(), "Account",
 				false);
 		return customfields;
@@ -150,10 +149,8 @@ public class AccountServiceImpl implements AccountService {
 	@Override
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
 
-		System.out.println(" Save Account customFields : Service");
-		System.out.println(customFieldsRequestDTO);
-
-		if (accountCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+		if (accountCustomFieldsRepository.findByNameAndTypeAndIsDeletedAndCreatedBy(customFieldsRequestDTO.getName(),
+				"Account", false, getUserId())) {
 			throw new DuplicateResourceException(
 					messageSource.getMessage("error.customViewNametaken", null, LocaleContextHolder.getLocale()));
 		}
@@ -667,9 +664,10 @@ public class AccountServiceImpl implements AccountService {
 		CustomFieldsEntity customFieldsEntity = accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Custom view not found"));
 		if (!Objects.equals(customFieldsEntity.getName(), customFieldsRequestDTO.getName())
-				&& accountCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+				&& accountCustomFieldsRepository.findByNameAndTypeAndIsDeletedAndCreatedBy(
+						customFieldsRequestDTO.getName(), "Account", false, getUserId())) {
 			throw new DuplicateResourceException(
-					messageSource.getMessage("error.customViewAlreadySelected", null, LocaleContextHolder.getLocale()));
+					messageSource.getMessage("error.customViewNametaken", null, LocaleContextHolder.getLocale()));
 		}
 		customFieldsEntity.setName(customFieldsRequestDTO.getName());
 		customFieldsEntity.setSelected(customFieldsEntity.isSelected());
