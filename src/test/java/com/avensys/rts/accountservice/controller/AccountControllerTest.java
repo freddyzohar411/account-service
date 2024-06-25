@@ -72,7 +72,7 @@ public class AccountControllerTest {
 	public void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
 		accountListingRequestDTO = new AccountListingRequestDTO(0, 5, "sortBy", "sortDirection", "searchTerm",
-				searchFields);
+				searchFields,false);
 		customFieldsRequestDTO = new CustomFieldsRequestDTO("AccountCustomView","Account",columnName);
 		accountRequestDTO = new AccountRequestDTO("accountName", uploadAgreement, false, formData, 1, "accountCountry");
 		this.mockMvc = MockMvcBuilders.standaloneSetup(accountController).build();
