@@ -1,6 +1,8 @@
 package com.avensys.rts.accountservice.repository;
 
 import com.avensys.rts.accountservice.entity.AccountEntity;
+import com.avensys.rts.accountservice.payloadnewrequest.FilterDTO;
+import com.avensys.rts.accountservice.util.QueryUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -149,8 +151,6 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 				"SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
-		// Log the generated SQL (for debugging)
-		System.out.println(queryString);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
@@ -424,23 +424,31 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 					sql.append(String.format("(%s->>'%s') ILIKE :param%d", jsonColumnName, jsonKey, parameterPosition));
 				case "!=" -> sql.append(
 						String.format("(%s->>'%s') NOT ILIKE :param%d", jsonColumnName, jsonKey, parameterPosition));
-				case ">" -> sql.append(String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER) > CAST(:param%d AS INTEGER)",
-						jsonColumnName, jsonKey, parameterPosition));
-				case "<" -> sql.append(String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER) < CAST(:param%d AS INTEGER)", jsonColumnName, jsonKey,
-						parameterPosition));
-				case ">=" -> sql.append(String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER) >= CAST(:param%d AS INTEGER)", jsonColumnName, jsonKey,
-						parameterPosition));
-				case "<=" -> sql.append(String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER) <= CAST(:param%d AS INTEGER)", jsonColumnName, jsonKey,
-						parameterPosition));
+				case ">" ->
+					sql.append(String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER) > CAST(:param%d AS INTEGER)",
+							jsonColumnName, jsonKey, parameterPosition));
+				case "<" ->
+					sql.append(String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER) < CAST(:param%d AS INTEGER)",
+							jsonColumnName, jsonKey, parameterPosition));
+				case ">=" ->
+					sql.append(String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER) >= CAST(:param%d AS INTEGER)",
+							jsonColumnName, jsonKey, parameterPosition));
+				case "<=" ->
+					sql.append(String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER) <= CAST(:param%d AS INTEGER)",
+							jsonColumnName, jsonKey, parameterPosition));
 				}
 			} else {
 				switch (operator) {
 				case "=" -> sql.append(String.format("%s ILIKE :param%d", fieldName, parameterPosition));
 				case "!=" -> sql.append(String.format("%s NOT ILIKE :param%d", fieldName, parameterPosition));
-				case ">" -> sql.append(String.format("CAST(NULLIF(%s,'') AS INTEGER) > CAST(:param%d AS INTEGER)", fieldName, parameterPosition));
-				case "<" -> sql.append(String.format("CAST(NULLIF(%s,'') AS INTEGER) < CAST(:param%d AS INTEGER)", fieldName, parameterPosition));
-				case ">=" -> sql.append(String.format("CAST(NULLIF(%s,'') AS INTEGER) >= CAST(:param%d AS INTEGER)", fieldName, parameterPosition));
-				case "<=" -> sql.append(String.format("CAST(NULLIF(%s,'') AS INTEGER) <= CAST(:param%d AS INTEGER)", fieldName, parameterPosition));
+				case ">" -> sql.append(String.format("CAST(NULLIF(%s,'') AS INTEGER) > CAST(:param%d AS INTEGER)",
+						fieldName, parameterPosition));
+				case "<" -> sql.append(String.format("CAST(NULLIF(%s,'') AS INTEGER) < CAST(:param%d AS INTEGER)",
+						fieldName, parameterPosition));
+				case ">=" -> sql.append(String.format("CAST(NULLIF(%s,'') AS INTEGER) >= CAST(:param%d AS INTEGER)",
+						fieldName, parameterPosition));
+				case "<=" -> sql.append(String.format("CAST(NULLIF(%s,'') AS INTEGER) <= CAST(:param%d AS INTEGER)",
+						fieldName, parameterPosition));
 				}
 //				sql.append(String.format("%s ILIKE ?", fieldName));
 			}
@@ -449,7 +457,6 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 				values.add("%" + value.toLowerCase() + "%");
 			} else if (operator.equals(">") || operator.equals("<") || operator.equals(">=") || operator.equals("<=")) {
 				values.add(value);
-				System.out.println("Value: " + value);
 			} else {
 				values.add("%" + value.toLowerCase() + "%");
 			}
@@ -457,8 +464,6 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 //			values.add("%" + value.toLowerCase() + "%");
 			parameterPosition++;
 		}
-
-		System.out.println("SQL Query: " + sql);
 
 		NativeQuery<AccountEntity> nativeQuery = (NativeQuery<AccountEntity>) entityManager
 				.createNativeQuery(sql.toString(), AccountEntity.class);
@@ -541,8 +546,14 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 //	}
 
 	@Override
-	public Page<AccountEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive,List<String> accountOwnerValues,  Pageable pageable) {
+	public Page<AccountEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isDraft,
+			Boolean isActive, List<String> accountOwnerValues, Pageable pageable, List<FilterDTO> filters) {
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -564,18 +575,19 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		String userCondition = "";
 		if (!userIds.isEmpty() || (accountOwnerValues != null && !accountOwnerValues.isEmpty())) {
 			String joinedAccountOwnerValues = accountOwnerValues.stream()
-					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping quotes
+					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping
+																		// quotes
 					.collect(Collectors.joining(", "));
 
 			String jsonBFilter = " OR account_submission_data->>'accountOwner' IN (" + joinedAccountOwnerValues + ")";
-			userCondition = userIds.isEmpty() ? jsonBFilter :
-					String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
+			userCondition = userIds.isEmpty() ? jsonBFilter
+					: String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
 		}
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
-				userCondition, orderByClause, sortDirection);
+				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s %s ORDER BY %s %s NULLS LAST",
+				userCondition, filterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
@@ -593,8 +605,8 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s",
-				userCondition);
+				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s %s",
+				userCondition, filterQuery);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -676,7 +688,15 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 	@Override
 	public Page<AccountEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive, List<String> accountOwnerValues, Pageable pageable) {
+			Boolean isDraft, Boolean isActive, List<String> accountOwnerValues, Pageable pageable,
+			List<FilterDTO> filters) {
+
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -698,18 +718,20 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		String userCondition = "";
 		if (!userIds.isEmpty() || (accountOwnerValues != null && !accountOwnerValues.isEmpty())) {
 			String joinedAccountOwnerValues = accountOwnerValues.stream()
-					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping quotes
+					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping
+																		// quotes
 					.collect(Collectors.joining(", "));
 
 			String jsonBFilter = " OR account_submission_data->>'accountOwner' IN (" + joinedAccountOwnerValues + ")";
-			userCondition = userIds.isEmpty() ? jsonBFilter :
-					String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
+			userCondition = userIds.isEmpty() ? jsonBFilter
+					: String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
 		}
 
-		// Build the complete query string with user filter, JSONB filter, and excluding NULLs
+		// Build the complete query string with user filter, JSONB filter, and excluding
+		// NULLs
 		String queryString = String.format(
-				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
-				userCondition, orderByClause, sortDirection);
+				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s %s ORDER BY %s %s NULLS LAST",
+				userCondition, filterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
@@ -727,8 +749,8 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 		// Build the count query string with similar conditions for accurate pagination
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s",
-				userCondition);
+				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s %s",
+				userCondition, filterQuery);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -833,7 +855,15 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 	@Override
 	public Page<AccountEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive,List<String> accountOwnerValues, Pageable pageable, List<String> searchFields, String searchTerm) {
+			Boolean isDraft, Boolean isActive, List<String> accountOwnerValues, Pageable pageable,
+			List<String> searchFields, String searchTerm, List<FilterDTO> filters) {
+
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -876,18 +906,19 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		String userCondition = "";
 		if (!userIds.isEmpty() || (accountOwnerValues != null && !accountOwnerValues.isEmpty())) {
 			String joinedAccountOwnerValues = accountOwnerValues.stream()
-					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping quotes
+					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping
+																		// quotes
 					.collect(Collectors.joining(", "));
 
 			String jsonBFilter = " OR account_submission_data->>'accountOwner' IN (" + joinedAccountOwnerValues + ")";
-			userCondition = userIds.isEmpty() ? jsonBFilter :
-					String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
+			userCondition = userIds.isEmpty() ? jsonBFilter
+					: String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
 		}
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
-				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) %s ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), filterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
@@ -906,8 +937,8 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s)",
-				userCondition, searchConditions.toString());
+				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s) %s",
+				userCondition, searchConditions.toString(), filterQuery);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -926,7 +957,15 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 	@Override
 	public Page<AccountEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isDraft, Boolean isActive, List<String> accountOwnerValues, Pageable pageable, List<String> searchFields, String searchTerm) {
+			Boolean isDraft, Boolean isActive, List<String> accountOwnerValues, Pageable pageable,
+			List<String> searchFields, String searchTerm, List<FilterDTO> filters) {
+
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -969,18 +1008,19 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		String userCondition = "";
 		if (!userIds.isEmpty() || (accountOwnerValues != null && !accountOwnerValues.isEmpty())) {
 			String joinedAccountOwnerValues = accountOwnerValues.stream()
-					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping quotes
+					.map(value -> "'" + value.replace("'", "''") + "'") // Safeguard against SQL injection by escaping
+																		// quotes
 					.collect(Collectors.joining(", "));
 
 			String jsonBFilter = " OR account_submission_data->>'accountOwner' IN (" + joinedAccountOwnerValues + ")";
-			userCondition = userIds.isEmpty() ? jsonBFilter :
-					String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
+			userCondition = userIds.isEmpty() ? jsonBFilter
+					: String.format(" AND (created_by IN (:userIds)%s)", jsonBFilter);
 		}
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
-				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM account WHERE is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) %s ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), filterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
@@ -999,8 +1039,8 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s)",
-				userCondition, searchConditions.toString());
+				"SELECT COUNT(*) FROM account WHERE is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive %s AND (%s) %s",
+				userCondition, searchConditions.toString(), filterQuery);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);

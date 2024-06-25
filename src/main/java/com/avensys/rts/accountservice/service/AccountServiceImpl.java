@@ -1,15 +1,9 @@
 package com.avensys.rts.accountservice.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
+import com.avensys.rts.accountservice.payloadnewrequest.*;
+import com.avensys.rts.accountservice.util.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -30,11 +24,6 @@ import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
 import com.avensys.rts.accountservice.exception.DuplicateResourceException;
 import com.avensys.rts.accountservice.model.AccountExtraData;
 import com.avensys.rts.accountservice.model.FieldInformation;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountListingDeleteRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.CommercialRequest;
-import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.FormSubmissionsRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingDataDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountListingResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNameResponseDTO;
@@ -45,13 +34,11 @@ import com.avensys.rts.accountservice.payloadnewresponse.FormSubmissionsResponse
 import com.avensys.rts.accountservice.payloadnewresponse.UserResponseDTO;
 import com.avensys.rts.accountservice.repository.AccountCustomFieldsRepository;
 import com.avensys.rts.accountservice.repository.AccountRepository;
-import com.avensys.rts.accountservice.util.JwtUtil;
-import com.avensys.rts.accountservice.util.MappingUtil;
-import com.avensys.rts.accountservice.util.StringUtil;
-import com.avensys.rts.accountservice.util.UserUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.transaction.Transactional;
+
+import javax.swing.text.html.Option;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -131,7 +118,6 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public List<CustomFieldsEntity> getAllCreatedCustomViews() {
-
 		List<CustomFieldsEntity> customfields = accountCustomFieldsRepository.findAllByUser(getUserId(), "Account",
 				false);
 		return customfields;
@@ -163,10 +149,8 @@ public class AccountServiceImpl implements AccountService {
 	@Override
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
 
-		System.out.println(" Save Account customFields : Service");
-		System.out.println(customFieldsRequestDTO);
-
-		if (accountCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+		if (accountCustomFieldsRepository.findByNameAndTypeAndIsDeletedAndCreatedBy(customFieldsRequestDTO.getName(),
+				"Account", false, getUserId())) {
 			throw new DuplicateResourceException(
 					messageSource.getMessage("error.customViewNametaken", null, LocaleContextHolder.getLocale()));
 		}
@@ -181,7 +165,6 @@ public class AccountServiceImpl implements AccountService {
 					accountCustomFieldsRepository.save(customView);
 				}
 			}
-
 		}
 		CustomFieldsEntity accountCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
 				customFieldsRequestDTO);
@@ -200,6 +183,11 @@ public class AccountServiceImpl implements AccountService {
 		// customFieldsEntity.setColumnName(MappingUtil.convertJsonNodeToJSONString(customFieldsRequestDTO.getColumnName()));
 		customFieldsEntity.setCreatedBy(getUserId());
 		customFieldsEntity.setUpdatedBy(getUserId());
+		// Get Filters
+		List<FilterDTO> filters = customFieldsRequestDTO.getFilters();
+		if (filters != null) {
+			customFieldsEntity.setFilters(JSONUtil.convertObjectToJsonNode(filters));
+		}
 		return accountCustomFieldsRepository.save(customFieldsEntity);
 	}
 
@@ -214,6 +202,11 @@ public class AccountServiceImpl implements AccountService {
 		customFieldsResponseDTO.setType(accountCustomFieldsEntity.getType());
 		customFieldsResponseDTO.setUpdatedBy(accountCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(accountCustomFieldsEntity.getId());
+		// Get Filters
+		JsonNode filters = accountCustomFieldsEntity.getFilters();
+		if (filters != null) {
+			customFieldsResponseDTO.setFilters(MappingUtil.convertJsonNodeToList(filters, FilterDTO.class));
+		}
 		return customFieldsResponseDTO;
 	}
 
@@ -416,7 +409,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AccountListingResponseDTO getAccountListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection, Boolean isGetAll, Boolean isDownload) {
+			String sortDirection, Boolean isGetAll, Boolean isDownload, List<FilterDTO> filters) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -447,10 +440,10 @@ public class AccountServiceImpl implements AccountService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			accountEntitiesPage = accountRepository.findAllByOrderByNumericWithUserIds(userIds, false, false, true,
-					userNamesEmail, pageRequest);
+					userNamesEmail, pageRequest, filters);
 		} catch (Exception e) {
 			accountEntitiesPage = accountRepository.findAllByOrderByStringWithUserIds(userIds, false, false, true,
-					userNamesEmail, pageRequest);
+					userNamesEmail, pageRequest, filters);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
@@ -458,7 +451,8 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AccountListingResponseDTO getAccountListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll, Boolean isDownload) {
+			String sortDirection, String searchTerm, List<String> searchFields, Boolean isGetAll, Boolean isDownload,
+			List<FilterDTO> filters) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -488,10 +482,10 @@ public class AccountServiceImpl implements AccountService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false, false,
-					true, userNamesEmail, pageRequest, searchFields, searchTerm);
+					true, userNamesEmail, pageRequest, searchFields, searchTerm, filters);
 		} catch (Exception e) {
 			accountEntitiesPage = accountRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false, false,
-					true, userNamesEmail, pageRequest, searchFields, searchTerm);
+					true, userNamesEmail, pageRequest, searchFields, searchTerm, filters);
 		}
 
 		return pageAccountListingToAccountListingResponseDTO(accountEntitiesPage);
@@ -656,6 +650,42 @@ public class AccountServiceImpl implements AccountService {
 		}
 
 		accountRepository.saveAll(accountEntities);
+	}
+
+	@Override
+	public CustomFieldsResponseDTO getCustomFieldsById(Long id) {
+		CustomFieldsEntity customFieldsEntity = accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity);
+	}
+
+	@Override
+	public CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO) {
+		CustomFieldsEntity customFieldsEntity = accountCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		if (!Objects.equals(customFieldsEntity.getName(), customFieldsRequestDTO.getName())
+				&& accountCustomFieldsRepository.findByNameAndTypeAndIsDeletedAndCreatedBy(
+						customFieldsRequestDTO.getName(), "Account", false, getUserId())) {
+			throw new DuplicateResourceException(
+					messageSource.getMessage("error.customViewNametaken", null, LocaleContextHolder.getLocale()));
+		}
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setSelected(customFieldsEntity.isSelected());
+		if (customFieldsRequestDTO.getColumnName() != null) {
+			if (!customFieldsRequestDTO.getColumnName().isEmpty()) {
+				String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
+				customFieldsEntity.setColumnName(columnNames);
+			}
+		}
+		customFieldsEntity.setUpdatedBy(getUserId());
+		List<FilterDTO> filters = customFieldsRequestDTO.getFilters();
+		if (filters != null) {
+			customFieldsEntity.setFilters(JSONUtil.convertObjectToJsonNode(filters));
+		}
+
+		// Save custom view
+		CustomFieldsEntity updatedCustomFieldEntity = accountCustomFieldsRepository.save(customFieldsEntity);
+		return customFieldsEntityToCustomFieldsResponseDTO(updatedCustomFieldEntity);
 	}
 
 	private JsonNode getAccountInfoByIDJsonNode(Integer accountId) {

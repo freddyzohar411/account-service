@@ -1,10 +1,17 @@
 package com.avensys.rts.accountservice.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.avensys.rts.accountservice.payloadnewrequest.AccountListingDeleteRequestDTO;
+import aj.org.objectweb.asm.TypeReference;
+import com.avensys.rts.accountservice.payloadnewrequest.*;
+import com.avensys.rts.accountservice.util.*;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,14 +34,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.avensys.rts.accountservice.annotation.RequiresAllPermissions;
 import com.avensys.rts.accountservice.constant.MessageConstants;
 import com.avensys.rts.accountservice.enums.Permission;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountListingRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.AccountRequestDTO;
-import com.avensys.rts.accountservice.payloadnewrequest.CustomFieldsRequestDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.AccountNewResponseDTO;
 import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO;
 import com.avensys.rts.accountservice.service.AccountServiceImpl;
-import com.avensys.rts.accountservice.util.ResponseUtil;
-import com.avensys.rts.accountservice.util.UserUtil;
 
 import jakarta.validation.Valid;
 
@@ -164,17 +166,18 @@ public class AccountController {
 		String searchTerm = accountListingRequestDTO.getSearchTerm();
 		Boolean isAdmin = userUtil.checkIsAdmin();
 		Boolean isDownload = accountListingRequestDTO.getIsDownload();
-
+		List<FilterDTO> filters = accountListingRequestDTO.getFilters();
 		List<String> searchFields = accountListingRequestDTO.getSearchFields();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, isAdmin, isDownload),
+					accountService.getAccountListingPage(page, pageSize, sortBy, sortDirection, isAdmin, isDownload,
+							filters),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
 		return ResponseUtil.generateSuccessResponse(
 				accountService.getAccountListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-						searchFields, isAdmin, isDownload),
+						searchFields, isAdmin, isDownload, filters),
 				HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.ACCOUNT_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
@@ -316,6 +319,23 @@ public class AccountController {
 		accountService.softDeleteAccounts(accountListingDeleteRequestDTO);
 		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("/customView/{customViewId}")
+	public ResponseEntity<Object> getAccountCustomView(@PathVariable Long customViewId) {
+		log.info("Account get custom view: Controller");
+		return ResponseUtil.generateSuccessResponse(accountService.getCustomFieldsById(customViewId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@PostMapping("/customView/edit/{customViewId}")
+	public ResponseEntity<Object> editAccountCustomView(@PathVariable Long customViewId,
+			@RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
+		log.info("Account edit custom view: Controller");
+		CustomFieldsResponseDTO customFieldsResponseDTO = accountService.editCustomFieldsById(customViewId,
+				customFieldsRequestDTO);
+		return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED,
+				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
 	}
 
 }
