@@ -151,8 +151,6 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 				"SELECT * FROM account_new WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
-		// Log the generated SQL (for debugging)
-		System.out.println(queryString);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, AccountEntity.class);
@@ -459,7 +457,6 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 				values.add("%" + value.toLowerCase() + "%");
 			} else if (operator.equals(">") || operator.equals("<") || operator.equals(">=") || operator.equals("<=")) {
 				values.add(value);
-				System.out.println("Value: " + value);
 			} else {
 				values.add("%" + value.toLowerCase() + "%");
 			}
@@ -467,8 +464,6 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 //			values.add("%" + value.toLowerCase() + "%");
 			parameterPosition++;
 		}
-
-		System.out.println("SQL Query: " + sql);
 
 		NativeQuery<AccountEntity> nativeQuery = (NativeQuery<AccountEntity>) entityManager
 				.createNativeQuery(sql.toString(), AccountEntity.class);
@@ -700,7 +695,6 @@ public class CustomAccountRepositoryImpl implements CustomAccountRepository {
 		if (filters != null) {
 			if (!filters.isEmpty()) {
 				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
-				System.out.println("Filter Query: " + filterQuery);
 			}
 		}
 
