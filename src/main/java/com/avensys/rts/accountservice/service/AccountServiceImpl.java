@@ -688,6 +688,11 @@ public class AccountServiceImpl implements AccountService {
 		return customFieldsEntityToCustomFieldsResponseDTO(updatedCustomFieldEntity);
 	}
 
+	@Override
+	public void unSelectAllCustomViews() {
+		accountCustomFieldsRepository.updateIsSelected(false, "Account", false, getUserId());
+	}
+
 	private JsonNode getAccountInfoByIDJsonNode(Integer accountId) {
 		// Get basic information from form submission
 		AccountEntity accountEntity = accountRepository.findByIdAndDeleted(accountId, false, true)

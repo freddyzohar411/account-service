@@ -76,4 +76,7 @@ public interface AccountService {
 	CustomFieldsResponseDTO getCustomFieldsById(Long id);
 
 	CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO);
+
+	void unSelectAllCustomViews();
+
 }

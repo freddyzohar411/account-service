@@ -338,4 +338,12 @@ public class AccountController {
 				messageSource.getMessage(MessageConstants.ACCOUNT_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
 	}
 
+	@PutMapping("/customView/unselect-all")
+	public ResponseEntity<Object> unselectAllCustomView() {
+		log.info("Account unselect all custom view: Controller");
+		accountService.unSelectAllCustomViews();
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
 }
