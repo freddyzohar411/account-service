@@ -4,11 +4,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import com.avensys.rts.accountservice.entity.AccountEntity;
 import com.avensys.rts.accountservice.entity.CustomFieldsEntity;
 import com.avensys.rts.accountservice.payloadnewresponse.CustomFieldsResponseDTO;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface AccountCustomFieldsRepository extends JpaRepository<CustomFieldsEntity, Long> {
 
@@ -23,8 +25,13 @@ public interface AccountCustomFieldsRepository extends JpaRepository<CustomField
 	@Query(value = "SELECT c FROM customView c WHERE c.id = ?1 AND c.isDeleted = ?2 AND c.isActive = ?3")
 	Optional<CustomFieldsEntity> findByIdAndDeleted(Long id, boolean isDeleted, boolean isActive);
 
-	// Find Boolean exist by name if type and is_deleted and created By, return true or false
+	// Find Boolean exist by name if type and is_deleted and created By, return true
+	// or false
 	@Query(value = "SELECT CASE WHEN COUNT(c) > 0 THEN TRUE ELSE FALSE END FROM customView c WHERE c.name = ?1 AND c.type = ?2 AND c.isDeleted = ?3 AND c.createdBy = ?4")
-	Boolean findByNameAndTypeAndIsDeletedAndCreatedBy(String name, String type, boolean isDeleted,
-			Integer createdBy);
+	Boolean findByNameAndTypeAndIsDeletedAndCreatedBy(String name, String type, boolean isDeleted, Integer createdBy);
+
+	@Modifying
+	@Transactional
+	@Query("UPDATE customView c SET c.isSelected = ?1 WHERE c.type = ?2 AND c.isDeleted = ?3 AND c.createdBy = ?4")
+	void updateIsSelected(boolean isSelected, String type, boolean isDeleted, Integer createdBy);
 }
